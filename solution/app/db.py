@@ -17,10 +17,10 @@ from wand.image import Image
 import re
 
 db_user = 'root'
-db_pass = 'ece1779pass'
+db_pass = '2401'
 db_host = '127.0.0.1'
 db_name = 'A1'
-virtual_disk = '/home/ubuntu/A1/ece1779P1web/solution/app/static/images';
+virtual_disk = 'C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\images'; #'/home/ubuntu/A1/ece1779P1web/solution/app/static/images';
 
 IMAGE_TRANSFORMS = set(['orig', 'redblueshift', 'grayscale', 'overexposed'])
 
@@ -192,10 +192,12 @@ def image_exists(username, imagename):
 	return True
 
 
-def add_image(username, imagename):
+def add_image(username, imagename, image_url):
 	# Get information about image and user
 	userid = get_userid(username)
-	imagedir = os.path.join(virtual_diskpath(), username)
+	image_orig = image_url
+	print("Add image to DB")
+	print(image_orig)
 
 	# Open db connection
 	print("Uploading image %s ..." % (imagename))
@@ -210,31 +212,33 @@ def add_image(username, imagename):
 		cnx.close()
 		return result
 
+	print("insert filename")
 	# Insert filename to images table
 	try:
 		cursor.execute(
-			"INSERT INTO images (userid,imagename,orig,redblueshift,grayscale,overexposed) VALUES (%d,'%s','NULL','NULL','NULL','NULL')" % (
-			userid, imagename))
+			"INSERT INTO images (userid,imagename,orig,redblueshift,grayscale,overexposed) VALUES (%d,'%s','%s','NULL','NULL','NULL')" % (
+			userid, imagename,image_orig))
 		cnx.commit()
 		result = True
 	except:
+		print("except")
 		cnx.rollback()
 
 	# Split the image name into rawname and extension
-	(rawname, ext) = os.path.splitext(imagename)
-
-	# Update row with paths to each transform
-	for transform in IMAGE_TRANSFORMS:
-		transformed_image = os.path.join(imagedir, rawname + "_" + transform + ext)
-		print(transformed_image)
-		try:
-			# print("UPDATE images SET %s = '%s' WHERE imagename = '%s'" % (transform, re.escape(transformed_image), imagename))
-			cursor.execute("UPDATE images SET %s = '%s' WHERE imagename = '%s'" % (
-			transform, re.escape(transformed_image), imagename))
-			cnx.commit()
-			result = True
-		except:
-			cnx.rollback()
+	# (rawname, ext) = os.path.splitext(imagename)
+    #
+	# # Update row with paths to each transform
+	# for transform in IMAGE_TRANSFORMS:
+	# 	transformed_image = os.path.join(imagedir, rawname + "_" + transform + ext)
+	# 	print(transformed_image)
+	# 	try:
+	# 		# print("UPDATE images SET %s = '%s' WHERE imagename = '%s'" % (transform, re.escape(transformed_image), imagename))
+	# 		cursor.execute("UPDATE images SET %s = '%s' WHERE imagename = '%s'" % (
+	# 		transform, re.escape(transformed_image), imagename))
+	# 		cnx.commit()
+	# 		result = True
+	# 	except:
+	# 		cnx.rollback()
 
 	# Close db connection
 	cursor.close()
@@ -243,6 +247,7 @@ def add_image(username, imagename):
 # return result
 
 def get_imagelist(username):
+	print("Get_imagelist")
 	# Open db connection
 	print("Loading user %s's images ..." % (username))
 	result = False
@@ -264,10 +269,16 @@ def get_imagelist(username):
 	newlist = []
 	print(image_list)
 	for images in image_list:
-		newlist.append(images[0].split(
-			'/home/ubuntu/A1/ece1779P1web/solution/app/static/',
-			1)[1].replace('\\', '/'))
+		newlist.append(images[0])
+		# newlist.append(images[0].split(
+		# 	'C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\',
+		# 	1)[1].replace('\\', '/'))
 	print(newlist)
+	# for images in image_list:
+	# 	newlist.append(images[0].split(
+	# 		'/home/ubuntu/A1/ece1779P1web/solution/app/static/',
+	# 		1)[1].replace('\\', '/'))
+	# print(newlist)
 
 	return newlist
 
@@ -280,7 +291,8 @@ def get_transforms(username, imagename):
 	cnx = connector()
 	cursor = cnx.cursor()
 	imagename = imagename[:-1]
-	imagename = "/home/ubuntu/A1/ece1779P1web/solution/app/static/" + imagename
+	imagename = "C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\" + imagename
+	# imagename = "/home/ubuntu/A1/ece1779P1web/solution/app/static/" + imagename
 
 	# Retreive userid From users Table
 	userid = get_userid(username)
@@ -305,7 +317,10 @@ def get_transforms(username, imagename):
 		newlist.append(grayscale)
 
 	for image in newlist:
-		image = image.split("/home/ubuntu/A1/ece1779P1web/solution/app/static/",1)[1]
+		image = image.split(
+			"C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\",
+			1)[1]
+		# image = image.split("/home/ubuntu/A1/ece1779P1web/solution/app/static/",1)[1]
 		image = image.replace('\\', '/')
 		newlist2.append(image)
 

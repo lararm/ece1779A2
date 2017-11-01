@@ -11,6 +11,7 @@ from app import webapp
 from app import db
 import datetime
 import os
+import boto3
 
 ALLOWED_IMAGE_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
@@ -30,6 +31,28 @@ def login():
 		return redirect(url_for('homepage'))
 	return render_template("login.html")
 
+@webapp.route('/tests3', methods=['GET', 'POST'])
+def tests3():
+    # Create an S3 client
+    s3 = boto3.client('s3')
+    # Call S3 to list current buckets
+    response = s3.list_buckets()
+    # Get a list of all bucket names from the response
+    buckets = [bucket['Name'] for bucket in response['Buckets']]
+    bucket = buckets[0]
+    # Print out the bucket list
+    print("Bucket List: %s" % buckets)
+    print("Bucket: %s" % bucket)
+
+    # filename = 'C:/Users/Larissa/Documents/UofT/Intro_Cloud_Computing/A2/solution/app/static/android2.png'
+    # bucket_name = bucket
+    #
+    # # Uploads the given file using a managed uploader, which will split up large
+    # # files automatically and upload parts in parallel.
+    # s3.upload_file(filename, bucket_name, filename)
+
+    return render_template("login.html")
+
 @webapp.route('/signup', methods=['GET','POST'])
 def signup():
 	if 'username' in session:
@@ -39,7 +62,6 @@ def signup():
 
 @webapp.route('/homepage', methods=['GET','POST'])
 def homepage():
-
 	if 'username' not in session:
 		return render_template("main.html")
 	print ("Session user is: %s" % escape(session['username']))
@@ -52,7 +74,10 @@ def homepage():
 	print ("OUTPUT FROM DB IS")
 	print(tuple(image_names))
 	#print(image_names)
+	#Test boto
 	return render_template("homepage.html",image_names=image_names,username=username)
+
+
 
 @webapp.route('/transform_image', methods=['GET','POST'])
 def transforms():
@@ -131,24 +156,50 @@ def delete_user_submit():
 
 @webapp.route('/upload_image_submit', methods=['POST'])
 def upload_image_submit():
-	
 	#Get Session Information
 	username = escape(session['username'])
 
-	#Get User Input
-	image = request.files['image']
+	# Get User Input
+	new_file = request.files['image']
+	image_name = new_file.filename
+	image_type = new_file.content_type
+	print(new_file)
 
+	# if user does not select file, browser also
+	# submit a empty part without filename
+	if new_file.filename == '':
+		return redirect(url_for('homepage', id=id))
+
+    # Create an S3 client
+	s3 = boto3.client('s3')
+	id = 'ece1779project2'
+
+    # # Call S3 to list current buckets
+	# response = s3.list_buckets()
+	# # Get a list of all bucket names from the response
+	# buckets = [bucket['Name'] for bucket in response['Buckets']]
+	# bucket = buckets[0]
+
+	#upload image to S3
+	s3.upload_fileobj(new_file,id, new_file.filename,
+	ExtraArgs = {"Metadata": {"Content-Type":image_type }})
+	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': new_file.filename},
+									ExpiresIn=100)).split('?')[0]
+	print(image_url)
+
+	#Upload image to DB
+	db.add_image(username,image_name, image_url)
 	#Upload Image to Virtual Disk
-	if image and allowed_file(image.filename):
-		image_name = secure_filename(image.filename)
-		db.add_image(username,image_name)
-		destpath = os.path.join(db.virtual_diskpath(),username)
-		if not os.path.exists(destpath):
-			os.makedirs(destpath)
-		image.save(os.path.join(destpath,image_name))
+	# if image and allowed_file(image.filename):
+	# 	image_name = secure_filename(image.filename)
+		# db.add_image(username,image_name)
+		# destpath = os.path.join(db.virtual_diskpath(),username)
+		# if not os.path.exists(destpath):
+		# 	os.makedirs(destpath)
+		# image.save(os.path.join(destpath,image_name))
 
 	#Create Transforms
-	db.transform_image(os.path.join(destpath,image_name))
+	# db.transform_image(os.path.join(destpath,image_name))
 
 	return redirect(url_for('homepage'))
 
