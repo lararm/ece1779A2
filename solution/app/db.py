@@ -5,6 +5,7 @@
 # Date:		October 2017
 # Purpose: 	Database connection calls.
 ###########################################################
+from app import config
 from app import webapp
 import hashlib
 import uuid
@@ -16,21 +17,10 @@ from shutil import copyfile
 from wand.image import Image
 import re
 
-db_user = 'root'
-db_pass = '2401'
-db_host = '127.0.0.1'
-db_name = 'A1'
-virtual_disk = 'C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\images'; #'/home/ubuntu/A1/ece1779P1web/solution/app/static/images';
-
 IMAGE_TRANSFORMS = set(['orig', 'redblueshift', 'grayscale', 'overexposed'])
 
-
-def virtual_diskpath():
-	return virtual_disk;
-
-
 def connector():
-	return mysql.connector.connect(user=db_user, password=db_pass, host=db_host, database=db_name)
+	return mysql.connector.connect(user=config.db_user, password=config.db_pass, host=config.db_host, database=config.db_name)
 
 
 def add_user(username, password):
@@ -125,7 +115,6 @@ def delete_user(username, password):
 
 	# Get user id
 	userid = get_userid(username)
-	print(userid)
 
 	# Delete user
 	try:
@@ -140,8 +129,7 @@ def delete_user(username, password):
 	cnx.close()
 
 	# Delete Users Directory
-	if ((result) and os.path.isdir(os.path.join(virtual_diskpath(), username))):
-		shutil.rmtree(os.path.join(virtual_diskpath(), username))
+	# FIXME use s3 command to delete users directory	
 
 	print("Deleted user %s!" % (username))
 	return result;
@@ -196,7 +184,7 @@ def add_image(username, imagename, image_url):
 	# Get information about image and user
 	userid = get_userid(username)
 	image_orig = image_url
-	print("Add image to DB")
+	print("Add image to DB") #FIXME remove print
 	print(image_orig)
 
 	# Open db connection
@@ -224,6 +212,7 @@ def add_image(username, imagename, image_url):
 		print("except")
 		cnx.rollback()
 
+	#FIXME add each transforms path
 	# Split the image name into rawname and extension
 	# (rawname, ext) = os.path.splitext(imagename)
     #
@@ -248,6 +237,7 @@ def add_image(username, imagename, image_url):
 
 def get_imagelist(username):
 	print("Get_imagelist")
+	
 	# Open db connection
 	print("Loading user %s's images ..." % (username))
 	result = False
@@ -259,31 +249,23 @@ def get_imagelist(username):
 
 	# Retrieve image_name From images Table
 	cursor.execute("SELECT orig FROM images WHERE userid = %s" % (userid))
-	print("SELECT orig FROM images WHERE userid = %s" % (userid))
 	image_list = cursor.fetchall()
 
 	# Close db connection
 	cursor.close()
 	cnx.close()
-
+	
+	# Store images into a list
 	newlist = []
-	print(image_list)
 	for images in image_list:
 		newlist.append(images[0])
-		# newlist.append(images[0].split(
-		# 	'C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\',
-		# 	1)[1].replace('\\', '/'))
-	print(newlist)
-	# for images in image_list:
-	# 	newlist.append(images[0].split(
-	# 		'/home/ubuntu/A1/ece1779P1web/solution/app/static/',
-	# 		1)[1].replace('\\', '/'))
-	# print(newlist)
-
+	
 	return newlist
 
 
 def get_transforms(username, imagename):
+
+	#FIXME TODO this whole function
 	print("get_transforms")
 	# Open db connection
 	print("Loading user %s's images ..." % (username))
@@ -328,6 +310,7 @@ def get_transforms(username, imagename):
 
 
 def get_image(username, imagename, transform):
+	
 	# Open db connection
 	print("Retrieving image %s version of %s  ..." % (transform, imagename))
 	cnx = connector()
@@ -356,7 +339,7 @@ def delete_image(username, imagename):
 		return False
 
 	# Delete image
-	filename = os.path.join(virtual_diskpath(), username, imagename)
+	# FIXME use s3 to get image name	
 	print("Deleting %s" % (filename))
 	if (os.path.exists(filename)):
 		print("Deleting %s" % (filename))

@@ -9,12 +9,12 @@ from flask import render_template, session, request, escape, redirect, url_for
 from werkzeug.utils import secure_filename
 from app import webapp
 from app import db
+from app import config
 import datetime
 import os
 import boto3
 
 ALLOWED_IMAGE_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
-
 @webapp.route('/')
 def main():
 	#session.clear()
@@ -66,15 +66,7 @@ def homepage():
 		return render_template("main.html")
 	print ("Session user is: %s" % escape(session['username']))
 	username = escape(session['username'])
-	print(username)
-	print ("OUTPUT FROM DIR IS")
-	# image_names = os.listdir('app/static/images/'+username)
-	# print (image_names)
 	image_names = db.get_imagelist(username)
-	print ("OUTPUT FROM DB IS")
-	print(tuple(image_names))
-	#print(image_names)
-	#Test boto
 	return render_template("homepage.html",image_names=image_names,username=username)
 
 
@@ -165,40 +157,31 @@ def upload_image_submit():
 	image_type = new_file.content_type
 	print(new_file)
 
-	# if user does not select file, browser also
+	# If user does not select file, browser also
 	# submit a empty part without filename
 	if new_file.filename == '':
 		return redirect(url_for('homepage', id=id))
 
-    # Create an S3 client
-	s3 = boto3.client('s3')
-	id = 'ece1779project2'
+    	# Create an S3 client
+	s3 = boto3.client('s3',aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
+	id = config.AWS_ID
 
-    # # Call S3 to list current buckets
+	# Upload image to S3
+	s3.upload_fileobj(new_file,id, new_file.filename,
+	ExtraArgs = {"Metadata": {"Content-Type":image_type }})
+	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': new_file.filename},ExpiresIn=100)).split('?')[0]
+	print(image_url)
+
+	# Call S3 to list current buckets #FIXME TODO remove test code
 	# response = s3.list_buckets()
 	# # Get a list of all bucket names from the response
 	# buckets = [bucket['Name'] for bucket in response['Buckets']]
 	# bucket = buckets[0]
 
-	#upload image to S3
-	s3.upload_fileobj(new_file,id, new_file.filename,
-	ExtraArgs = {"Metadata": {"Content-Type":image_type }})
-	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': new_file.filename},
-									ExpiresIn=100)).split('?')[0]
-	print(image_url)
-
-	#Upload image to DB
+	# Upload Image URL to DB
 	db.add_image(username,image_name, image_url)
-	#Upload Image to Virtual Disk
-	# if image and allowed_file(image.filename):
-	# 	image_name = secure_filename(image.filename)
-		# db.add_image(username,image_name)
-		# destpath = os.path.join(db.virtual_diskpath(),username)
-		# if not os.path.exists(destpath):
-		# 	os.makedirs(destpath)
-		# image.save(os.path.join(destpath,image_name))
 
-	#Create Transforms
+	# Create Transforms #FIXME TODO  
 	# db.transform_image(os.path.join(destpath,image_name))
 
 	return redirect(url_for('homepage'))
@@ -238,7 +221,7 @@ def delete_image_submit():
 @webapp.route('/test/FileUpload', methods=['GET','POST'])
 def file_upload():
 
-    #Check if user is already logged in
+    	#Check if user is already logged in
 	if 'username' in session:
 		print ("Session user is: %s" % escape(session['username']))
 		return redirect(url_for('homepage'))
@@ -248,7 +231,7 @@ def file_upload():
 @webapp.route('/test/FileUploadSubmit', methods=['POST'])
 def file_upload_submit():
 
-	#Get User Input
+	# Get User Input
 	username = request.form['username']
 	userpass = request.form['password']
 
@@ -260,27 +243,37 @@ def file_upload_submit():
 	if 'image' not in request.files:
 		return redirect(url_for('file_upload'))
 
-	image = request.files['image']
+	# Get User Input
+	new_file = request.files['image']
+	image_name = new_file.filename
+	image_type = new_file.content_type
+	print(new_file)
+	                                                    
+	# If user does not select file, browser also
+	# submit a empty part without filename
+	if new_file.filename == '':
+		return redirect(url_for('file_upload', id=id))
 
-	if image.filename == '':
-		return redirect(url_for('file_upload'))
+	# Create an S3 client
+	s3 = boto3.client('s3',aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
+	id = config.AWS_ID
+	                                                                                                                                   
+	# Upload image to S3
+	s3.upload_fileobj(new_file,id, new_file.filename,
+	ExtraArgs = {"Metadata": {"Content-Type":image_type }})
+	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': new_file.filename},ExpiresIn=100)).split('?')[0]
+	print(image_url)
 
-	#Upload Image to Virtual Disk
-	if image and allowed_file(image.filename):
-		image_name = secure_filename(image.filename)
-		db.add_image(username,image_name)
-		destpath = os.path.join(db.virtual_diskpath(),username)
-		if not os.path.exists(destpath):
-			os.makedirs(destpath)
-		image.save(os.path.join(destpath,image_name))
+	# Upload Image URL to DB
+	db.add_image(username,image_name, image_url)
 
-	#Create Transforms
-	db.transform_image(os.path.join(destpath,image_name))
+	#Create Transforms FIXME TODO 
+	#db.transform_image(os.path.join(destpath,image_name))
 
 	# Both Login and Upload Successful
 	session['username'] = request.form['username']
 	return redirect(url_for('homepage'))
 
-def allowed_file(filename):
+def allowed_file(filename): #FIXME TODO rewrite this function to use image_type
 	return '.' in filename and \
 		   filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
