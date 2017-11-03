@@ -85,8 +85,8 @@ def transforms():
 
 	username = escape(session['username'])
 
-
 	image_names = db.get_transforms(username,image_name)
+	print(image_name)
 
 	return render_template("transforms.html",image_names=image_names,username=username)
 
@@ -152,37 +152,42 @@ def upload_image_submit():
 	username = escape(session['username'])
 
 	# Get User Input
-	new_file = request.files['image']
-	image_name = new_file.filename
-	image_type = new_file.content_type
-	print(new_file)
+	image = request.files['image']
+	image_name = image.filename
+	image_type = image.content_type
 
 	# If user does not select file, browser also
 	# submit a empty part without filename
-	if new_file.filename == '':
+	if image.filename == '':
 		return redirect(url_for('homepage', id=id))
 
-    	# Create an S3 client
-	s3 = boto3.client('s3',aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
+
+	# Create an S3 client
+	s3 = boto3.client('s3', aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
 	id = config.AWS_ID
 
-	# Upload image to S3
-	s3.upload_fileobj(new_file,id, new_file.filename,
-	ExtraArgs = {"Metadata": {"Content-Type":image_type }})
-	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': new_file.filename},ExpiresIn=100)).split('?')[0]
+	# upload image to S3
+	image_new_name = username + "/" + image.filename
+	s3.upload_fileobj(image, id, image_new_name,
+					  ExtraArgs={"Metadata": {"Content-Type": image_type}})
+	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': image_new_name},
+										   ExpiresIn=100)).split('?')[0]
 	print(image_url)
 
-	# Call S3 to list current buckets #FIXME TODO remove test code
-	# response = s3.list_buckets()
-	# # Get a list of all bucket names from the response
-	# buckets = [bucket['Name'] for bucket in response['Buckets']]
-	# bucket = buckets[0]
+	# Download image #TODO change destpath
+	destpath = "C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\images\\";
+	new_image_path = destpath + image_name
+	s3.download_file(id, image_new_name, new_image_path)
 
 	# Upload Image URL to DB
 	db.add_image(username,image_name, image_url)
 
-	# Create Transforms #FIXME TODO  
-	# db.transform_image(os.path.join(destpath,image_name))
+	# Create Transforms
+	db.transform_image(new_image_path, username)
+
+	# Delete Images from Virtual Disk
+	if (db.delete_image(username, image_name)):
+		print("%s was deleted!" % (image_name))
 
 	return redirect(url_for('homepage'))
 

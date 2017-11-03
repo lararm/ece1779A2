@@ -16,8 +16,13 @@ import shutil
 from shutil import copyfile
 from wand.image import Image
 import re
+import boto3
 
-IMAGE_TRANSFORMS = set(['orig', 'redblueshift', 'grayscale', 'overexposed'])
+virtual_disk = 'C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\images';
+IMAGE_TRANSFORMS = set(['redblueshift', 'grayscale', 'overexposed'])
+
+def virtual_diskpath():
+	return virtual_disk
 
 def connector():
 	return mysql.connector.connect(user=config.db_user, password=config.db_pass, host=config.db_host, database=config.db_name)
@@ -129,11 +134,46 @@ def delete_user(username, password):
 	cnx.close()
 
 	# Delete Users Directory
-	# FIXME use s3 command to delete users directory	
-
+	# FIXME use s3 command to delete users directory
 	print("Deleted user %s!" % (username))
 	return result;
 
+def get_transforms(username, imagename):
+	# Open db connection
+	print("Loading user %s's images ..." % (username))
+	result = False
+	cnx = connector()
+	cursor = cnx.cursor()
+	imagename = imagename[:-1] #TODO change imagename
+	#imagename = "C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\" + imagename
+	# imagename = "/home/ubuntu/A1/ece1779P1web/solution/app/static/" + imagename
+
+	#Retreive userid From users Table
+	userid = get_userid(username)
+
+	# Retrieve image_name From images Table
+	cursor.execute("SELECT orig,redblueshift,overexposed,grayscale FROM images WHERE userid = %s && orig= '%s'" % (
+	userid, re.escape(imagename)))
+	transforms = cursor.fetchall()
+
+	# Close db connection
+	cursor.close()
+	cnx.close()
+
+	# Create a list that is compliant with HTML code
+	newlist = []
+	newlist2 = []
+
+	for orig, redblueshift, overexposed, grayscale in transforms:
+		newlist.append(orig)
+		newlist.append(redblueshift)
+		newlist.append(overexposed)
+		newlist.append(grayscale)
+
+	for image in newlist:
+		newlist2.append(image)
+
+	return newlist2
 
 def get_userid(username):
 	# Open db connection
@@ -152,7 +192,6 @@ def get_userid(username):
 	cnx.close()
 
 	return userid
-
 
 def image_exists(username, imagename):
 	# Open db connection
@@ -184,8 +223,6 @@ def add_image(username, imagename, image_url):
 	# Get information about image and user
 	userid = get_userid(username)
 	image_orig = image_url
-	print("Add image to DB") #FIXME remove print
-	print(image_orig)
 
 	# Open db connection
 	print("Uploading image %s ..." % (imagename))
@@ -200,7 +237,6 @@ def add_image(username, imagename, image_url):
 		cnx.close()
 		return result
 
-	print("insert filename")
 	# Insert filename to images table
 	try:
 		cursor.execute(
@@ -212,22 +248,20 @@ def add_image(username, imagename, image_url):
 		print("except")
 		cnx.rollback()
 
-	#FIXME add each transforms path
 	# Split the image name into rawname and extension
-	# (rawname, ext) = os.path.splitext(imagename)
-    #
-	# # Update row with paths to each transform
-	# for transform in IMAGE_TRANSFORMS:
-	# 	transformed_image = os.path.join(imagedir, rawname + "_" + transform + ext)
-	# 	print(transformed_image)
-	# 	try:
-	# 		# print("UPDATE images SET %s = '%s' WHERE imagename = '%s'" % (transform, re.escape(transformed_image), imagename))
-	# 		cursor.execute("UPDATE images SET %s = '%s' WHERE imagename = '%s'" % (
-	# 		transform, re.escape(transformed_image), imagename))
-	# 		cnx.commit()
-	# 		result = True
-	# 	except:
-	# 		cnx.rollback()
+	(rawname, ext) = os.path.splitext(imagename)
+
+	## Update row with paths to each transform
+	for transform in IMAGE_TRANSFORMS:
+		transformed_image = config.AWS_URL + username + "/" + rawname + "_" + transform + ext
+		try:
+			# print("UPDATE images SET %s = '%s' WHERE imagename = '%s'" % (transform, re.escape(transformed_image), imagename))
+			cursor.execute("UPDATE images SET %s = '%s' WHERE imagename = '%s'" % (
+			transform, re.escape(transformed_image), imagename))
+			cnx.commit()
+			result = True
+		except:
+			cnx.rollback()
 
 	# Close db connection
 	cursor.close()
@@ -236,8 +270,6 @@ def add_image(username, imagename, image_url):
 # return result
 
 def get_imagelist(username):
-	print("Get_imagelist")
-	
 	# Open db connection
 	print("Loading user %s's images ..." % (username))
 	result = False
@@ -249,64 +281,42 @@ def get_imagelist(username):
 
 	# Retrieve image_name From images Table
 	cursor.execute("SELECT orig FROM images WHERE userid = %s" % (userid))
+	print("SELECT orig FROM images WHERE userid = %s" % (userid))
 	image_list = cursor.fetchall()
 
 	# Close db connection
 	cursor.close()
 	cnx.close()
-	
-	# Store images into a list
+
 	newlist = []
 	for images in image_list:
 		newlist.append(images[0])
-	
 	return newlist
 
 
-def get_transforms(username, imagename):
-
-	#FIXME TODO this whole function
-	print("get_transforms")
+def get_imagelist(username):
 	# Open db connection
 	print("Loading user %s's images ..." % (username))
 	result = False
 	cnx = connector()
 	cursor = cnx.cursor()
-	imagename = imagename[:-1]
-	imagename = "C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\" + imagename
-	# imagename = "/home/ubuntu/A1/ece1779P1web/solution/app/static/" + imagename
 
 	# Retreive userid From users Table
 	userid = get_userid(username)
 
 	# Retrieve image_name From images Table
-	cursor.execute("SELECT orig,redblueshift,overexposed,grayscale FROM images WHERE userid = %s && orig= '%s'" % (
-	userid, re.escape(imagename)))
-	transforms = cursor.fetchall()
+	cursor.execute("SELECT orig FROM images WHERE userid = %s" % (userid))
+	print("SELECT orig FROM images WHERE userid = %s" % (userid))
+	image_list = cursor.fetchall()
 
 	# Close db connection
 	cursor.close()
 	cnx.close()
 
-	# Create a list that is compliant with HTML code
 	newlist = []
-	newlist2 = []
-
-	for orig, redblueshift, overexposed, grayscale in transforms:
-		newlist.append(orig)
-		newlist.append(redblueshift)
-		newlist.append(overexposed)
-		newlist.append(grayscale)
-
-	for image in newlist:
-		image = image.split(
-			"C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\",
-			1)[1]
-		# image = image.split("/home/ubuntu/A1/ece1779P1web/solution/app/static/",1)[1]
-		image = image.replace('\\', '/')
-		newlist2.append(image)
-
-	return newlist2
+	for images in image_list:
+		newlist.append(images[0])
+	return newlist
 
 
 def get_image(username, imagename, transform):
@@ -333,91 +343,104 @@ def get_image(username, imagename, transform):
 
 
 def delete_image(username, imagename):
-	print("Deleting image %s..." % (imagename))
-
-	if not (image_exists(username, imagename)):
-		return False
-
 	# Delete image
-	# FIXME use s3 to get image name	
-	print("Deleting %s" % (filename))
+	filename = os.path.join(virtual_diskpath(),imagename)
 	if (os.path.exists(filename)):
 		print("Deleting %s" % (filename))
 		os.remove(filename)
-
-	# Delete transforms
-	for transform in IMAGE_TRANSFORMS:
-		filename = get_image(username, imagename, transform)
-		print("Deleting %s" % (filename))
-		if (os.path.exists(filename)):
-			print("Deleting %s" % (filename))
-			os.remove(filename)
-
-	# Open db connection
-	result = False
-	cnx = connector()
-	cursor = cnx.cursor()
-
-	# Remove entry from DB
-	try:
-		userid = get_userid(username)
-		cursor.execute("DELETE FROM images WHERE userid = %s && imagename = '%s'" % (userid, imagename))
-		cnx.commit()
-		result = True
-	except:
-		cnx.rollback
-
-	# Close db connection
-	cursor.close()
-	cnx.close()
-
-	return result
+		return True
+	else:
+		return False
 
 
-def transform_image_orig(image, img):
+def transform_image_orig(image, img,username):
 	destImage = image[:-4] + '_orig' + image[-4:]
 	img.save(filename=destImage)
+	# Delete Image from Virtual Disk
+	image_name = destImage.split('images\\')[1]
+	if (delete_image(username, image_name)):
+		print("%s was deleted!" % (image_name))
 
 
-def transform_image_redblueshift(image, img):
+def transform_image_redblueshift(image, img, username):
 	img.evaluate(operator='rightshift', value=1, channel='blue')
 	img.evaluate(operator='leftshift', value=1, channel='red')
 
 	destImage = image[:-4] + '_redblueshift' + image[-4:]
 	img.save(filename=destImage)
+	#Save to S3
+	upload_image_s3(destImage, username)
 
+	# Delete Image from Virtual Disk
+	image_name = destImage.split('images\\')[1]
+	if (delete_image(username, image_name)):
+		print("%s was deleted!" % (image_name))
 
-def transform_image_grayscale(image, img):
+def transform_image_grayscale(image, img, username):
 	img.type = 'grayscale';
 	destImage = image[:-4] + '_grayscale' + image[-4:]
+	#Save transform on Virtual Disk
 	img.save(filename=destImage)
 
+	#Save image on S3
+	upload_image_s3(destImage, username)
 
-def transform_image_overexposed(image, img):
+	# Delete Image from Virtual Disk
+	image_name = destImage.split('images\\')[1]
+	if (delete_image(username, image_name)):
+		print("%s was deleted!" % (image_name))
+
+
+def transform_image_overexposed(image, img, username):
 	img.evaluate(operator='leftshift', value=1, channel='blue')
 	img.evaluate(operator='leftshift', value=1, channel='red')
 	img.evaluate(operator='leftshift', value=1, channel='green')
 	destImage = image[:-4] + '_overexposed' + image[-4:]
 	img.save(filename=destImage)
+	upload_image_s3(destImage, username)
+	# Delete Image from Virtual Disk
+	image_name = destImage.split('images\\')[1]
+	if (delete_image(username, image_name)):
+		print("%s was deleted!" % (image_name))
 
 
-def transform_image_enhancement(image, img):
+def transform_image_enhancement(image, img, username):
 	img.level(0.2, 0.9, gamma=1.1)
 	destImage = image[:-4] + '_enhancement' + image[-4:]
 	img.save(filename=destImage)
+	upload_image_s3(destImage, username)
+	# Delete Image from Virtual Disk
+	image_name = destImage.split('images\\')[1]
+	if (delete_image(username, image_name)):
+		print("%s was deleted!" % (image_name))
 
 
-def transform_image_flip(image, img):
+def transform_image_flip(image, img, username):
 	img.flop()
 	destImage = image[:-4] + '_flip' + image[-4:]
 	img.save(filename=destImage)
+	upload_image_s3(destImage, username)
+	# Delete Image from Virtual Disk
+	image_name = destImage.split('images\\')[1]
+	if (delete_image(username, image_name)):
+		print("%s was deleted!" % (image_name))
 
 
-def transform_image(image):
+def transform_image(image, username):
 	ImageFormat = re.compile('.*(\.)(.*)')
 	ImageFormat_Match = ImageFormat.match(image)
 	with Image(filename=image) as img:
-		transform_image_orig(image, img.clone())
-		transform_image_redblueshift(image, img.clone())
-		transform_image_grayscale(image, img.clone())
-		transform_image_overexposed(image, img.clone())
+		transform_image_orig(image, img.clone(), username	)
+		transform_image_redblueshift(image, img.clone(), username)
+		transform_image_grayscale(image, img.clone(), username)
+		transform_image_overexposed(image, img.clone(), username)
+
+def upload_image_s3(image, username):
+
+	image_name = username + "/" + image.split('images\\')[1]
+	# Create an S3 client
+	s3 = boto3.client('s3', aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
+	id = config.AWS_ID
+
+	# upload image to S3
+	s3.upload_file(image, id, image_name)
