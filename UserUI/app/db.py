@@ -256,7 +256,6 @@ def add_image(username, imagename, image_url):
 	for transform in IMAGE_TRANSFORMS:
 		transformed_image = config.AWS_URL + username + "/" + rawname + "_" + transform + ext
 		try:
-			# print("UPDATE images SET %s = '%s' WHERE imagename = '%s'" % (transform, re.escape(transformed_image), imagename))
 			cursor.execute("UPDATE images SET %s = '%s' WHERE imagename = '%s'" % (
 			transform, re.escape(transformed_image), imagename))
 			cnx.commit()
@@ -282,7 +281,6 @@ def get_imagelist(username):
 
 	# Retrieve image_name From images Table
 	cursor.execute("SELECT orig FROM images WHERE userid = %s" % (userid))
-	print("SELECT orig FROM images WHERE userid = %s" % (userid))
 	image_list = cursor.fetchall()
 
 	# Close db connection
@@ -293,55 +291,6 @@ def get_imagelist(username):
 	for images in image_list:
 		newlist.append(images[0])
 	return newlist
-
-
-def get_imagelist(username):
-	# Open db connection
-	print("Loading user %s's images ..." % (username))
-	result = False
-	cnx = connector()
-	cursor = cnx.cursor()
-
-	# Retreive userid From users Table
-	userid = get_userid(username)
-
-	# Retrieve image_name From images Table
-	cursor.execute("SELECT orig FROM images WHERE userid = %s" % (userid))
-	print("SELECT orig FROM images WHERE userid = %s" % (userid))
-	image_list = cursor.fetchall()
-
-	# Close db connection
-	cursor.close()
-	cnx.close()
-
-	newlist = []
-	for images in image_list:
-		newlist.append(images[0])
-	return newlist
-
-
-def get_image(username, imagename, transform):
-	
-	# Open db connection
-	print("Retrieving image %s version of %s  ..." % (transform, imagename))
-	cnx = connector()
-	cursor = cnx.cursor()
-
-	# Retreive userid From users Table
-	userid = get_userid(username)
-
-	# Retreive Image Path
-	if (image_exists(username, imagename)):
-		cursor.execute("SELECT %s FROM images WHERE userid = %s && imagename = '%s'" % (transform, userid, imagename))
-		imageinfo = cursor.fetchall()
-
-		for row in imageinfo:
-			image = row[0]
-
-	# Return Path to Image
-	print("Retreived %s" % (image))
-	return image
-
 
 def delete_image(username, imagename):
 	# Delete image
