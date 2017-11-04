@@ -31,28 +31,6 @@ def login():
 		return redirect(url_for('homepage'))
 	return render_template("login.html")
 
-@webapp.route('/tests3', methods=['GET', 'POST'])
-def tests3():
-    # Create an S3 client
-    s3 = boto3.client('s3')
-    # Call S3 to list current buckets
-    response = s3.list_buckets()
-    # Get a list of all bucket names from the response
-    buckets = [bucket['Name'] for bucket in response['Buckets']]
-    bucket = buckets[0]
-    # Print out the bucket list
-    print("Bucket List: %s" % buckets)
-    print("Bucket: %s" % bucket)
-
-    # filename = 'C:/Users/Larissa/Documents/UofT/Intro_Cloud_Computing/A2/solution/app/static/android2.png'
-    # bucket_name = bucket
-    #
-    # # Uploads the given file using a managed uploader, which will split up large
-    # # files automatically and upload parts in parallel.
-    # s3.upload_file(filename, bucket_name, filename)
-
-    return render_template("login.html")
-
 @webapp.route('/signup', methods=['GET','POST'])
 def signup():
 	if 'username' in session:
@@ -67,9 +45,8 @@ def homepage():
 	print ("Session user is: %s" % escape(session['username']))
 	username = escape(session['username'])
 	image_names = db.get_imagelist(username)
+
 	return render_template("homepage.html",image_names=image_names,username=username)
-
-
 
 @webapp.route('/transform_image', methods=['GET','POST'])
 def transforms():
@@ -161,7 +138,6 @@ def upload_image_submit():
 	if image.filename == '':
 		return redirect(url_for('homepage', id=id))
 
-
 	# Create an S3 client
 	s3 = boto3.client('s3', aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
 	id = config.AWS_ID
@@ -172,11 +148,10 @@ def upload_image_submit():
 					  ExtraArgs={"Metadata": {"Content-Type": image_type}})
 	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': image_new_name},
 										   ExpiresIn=100)).split('?')[0]
-	print(image_url)
 
-	# Download image #TODO change destpath
-	destpath = "C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\images\\";
-	new_image_path = destpath + image_name
+	# Download image
+	destpath = os.path.abspath('app/static/images')
+	new_image_path = os.path.join(destpath, image_name)
 	s3.download_file(id, image_new_name, new_image_path)
 
 	# Upload Image URL to DB
@@ -264,16 +239,25 @@ def file_upload_submit():
 	id = config.AWS_ID
 	                                                                                                                                   
 	# Upload image to S3
-	s3.upload_fileobj(new_file,id, new_file.filename,
+	image_new_name = username + "/" + new_file.filename
+	s3.upload_fileobj(new_file, id, image_new_name,
 	ExtraArgs = {"Metadata": {"Content-Type":image_type }})
-	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': new_file.filename},ExpiresIn=100)).split('?')[0]
-	print(image_url)
+	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': image_new_name},ExpiresIn=100)).split('?')[0]
 
 	# Upload Image URL to DB
 	db.add_image(username,image_name, image_url)
 
-	#Create Transforms FIXME TODO 
-	#db.transform_image(os.path.join(destpath,image_name))
+	# Download image
+	destpath = os.path.abspath('app/static/images')
+	new_image_path = os.path.join(destpath, image_name)
+	s3.download_file(id, image_name, new_image_path)
+
+	#Create Transforms
+	db.transform_image(new_image_path, username)
+
+	# Delete Images from Virtual Disk
+	if (db.delete_image(username, image_name)):
+		print("%s was deleted!" % (image_name))
 
 	# Both Login and Upload Successful
 	session['username'] = request.form['username']

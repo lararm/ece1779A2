@@ -18,11 +18,7 @@ from wand.image import Image
 import re
 import boto3
 
-virtual_disk = 'C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\images';
 IMAGE_TRANSFORMS = set(['redblueshift', 'grayscale', 'overexposed'])
-
-def virtual_diskpath():
-	return virtual_disk
 
 def connector():
 	return mysql.connector.connect(user=config.db_user, password=config.db_pass, host=config.db_host, database=config.db_name)
@@ -133,8 +129,15 @@ def delete_user(username, password):
 	cursor.close()
 	cnx.close()
 
-	# Delete Users Directory
-	# FIXME use s3 command to delete users directory
+	# Delete Users Directory in S3
+	#Create an S3 client
+	s3 = boto3.resource('s3', aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
+	bucket = my_bucket = s3.Bucket(config.AWS_ID)
+	print("Deleting images from S3 ...")
+	prefix = username + "/"
+	for obj in bucket.objects.filter(Prefix=prefix):
+		s3.Object(bucket.name, obj.key).delete()
+
 	print("Deleted user %s!" % (username))
 	return result;
 
@@ -144,9 +147,7 @@ def get_transforms(username, imagename):
 	result = False
 	cnx = connector()
 	cursor = cnx.cursor()
-	imagename = imagename[:-1] #TODO change imagename
-	#imagename = "C:\\Users\\Larissa\\Documents\\UofT\\Intro_Cloud_Computing\\A2\\solution\\app\\static\\" + imagename
-	# imagename = "/home/ubuntu/A1/ece1779P1web/solution/app/static/" + imagename
+	imagename = imagename[:-1]
 
 	#Retreive userid From users Table
 	userid = get_userid(username)
@@ -344,7 +345,9 @@ def get_image(username, imagename, transform):
 
 def delete_image(username, imagename):
 	# Delete image
-	filename = os.path.join(virtual_diskpath(),imagename)
+	print("#Delete image")
+	destpath = os.path.abspath('app/static/images')
+	filename = os.path.join(destpath, imagename)
 	if (os.path.exists(filename)):
 		print("Deleting %s" % (filename))
 		os.remove(filename)
