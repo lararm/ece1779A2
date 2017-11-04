@@ -309,7 +309,7 @@ def transform_image_orig(image, img,username):
 	destImage = image[:-4] + '_orig' + image[-4:]
 	img.save(filename=destImage)
 	# Delete Image from Virtual Disk
-	image_name = destImage.split('images\\')[1]
+	image_name = destImage.split('images/')[1]
 	if (delete_image(username, image_name)):
 		print("%s was deleted!" % (image_name))
 
@@ -324,7 +324,7 @@ def transform_image_redblueshift(image, img, username):
 	upload_image_s3(destImage, username)
 
 	# Delete Image from Virtual Disk
-	image_name = destImage.split('images\\')[1]
+	image_name = destImage.split('images/')[1]
 	if (delete_image(username, image_name)):
 		print("%s was deleted!" % (image_name))
 
@@ -338,7 +338,7 @@ def transform_image_grayscale(image, img, username):
 	upload_image_s3(destImage, username)
 
 	# Delete Image from Virtual Disk
-	image_name = destImage.split('images\\')[1]
+	image_name = destImage.split('images/')[1]
 	if (delete_image(username, image_name)):
 		print("%s was deleted!" % (image_name))
 
@@ -351,7 +351,7 @@ def transform_image_overexposed(image, img, username):
 	img.save(filename=destImage)
 	upload_image_s3(destImage, username)
 	# Delete Image from Virtual Disk
-	image_name = destImage.split('images\\')[1]
+	image_name = destImage.split('images/')[1]
 	if (delete_image(username, image_name)):
 		print("%s was deleted!" % (image_name))
 
@@ -373,7 +373,7 @@ def transform_image_flip(image, img, username):
 	img.save(filename=destImage)
 	upload_image_s3(destImage, username)
 	# Delete Image from Virtual Disk
-	image_name = destImage.split('images\\')[1]
+	image_name = destImage.split('images/')[1]
 	if (delete_image(username, image_name)):
 		print("%s was deleted!" % (image_name))
 
@@ -389,7 +389,7 @@ def transform_image(image, username):
 
 def upload_image_s3(image, username):
 
-	image_name = username + "/" + image.split('images\\')[1]
+	image_name = username + "/" + image.split('images/')[1]
 	# Create an S3 client
 	s3 = boto3.client('s3', aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
 	id = config.AWS_ID
