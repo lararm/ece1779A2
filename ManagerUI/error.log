@@ -1,0 +1,113 @@
+[2017-11-04 03:05:02 +0000] [2458] [INFO] Starting gunicorn 19.6.0
+[2017-11-04 03:05:02 +0000] [2458] [INFO] Listening at: http://0.0.0.0:420 (2458)
+[2017-11-04 03:05:02 +0000] [2458] [INFO] Using worker: gevent
+[2017-11-04 03:05:02 +0000] [2461] [INFO] Booting worker with pid: 2461
+[2017-11-04 03:05:02 +0000] [2462] [INFO] Booting worker with pid: 2462
+[2017-11-04 03:05:02 +0000] [2463] [INFO] Booting worker with pid: 2463
+[2017-11-04 03:05:02 +0000] [2464] [INFO] Booting worker with pid: 2464
+[2017-11-04 03:05:02 +0000] [2465] [INFO] Booting worker with pid: 2465
+[2017-11-04 03:05:02 +0000] [2466] [INFO] Booting worker with pid: 2466
+[2017-11-04 03:05:02 +0000] [2467] [INFO] Booting worker with pid: 2467
+[2017-11-04 03:05:02 +0000] [2468] [INFO] Booting worker with pid: 2468
+[2017-11-04 03:06:13,153] ERROR in app: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/app.py", line 1982, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/app.py", line 1614, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/app.py", line 1517, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/_compat.py", line 33, in reraise
+    raise value
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/home/ubuntu/A2/ece1779A2/ManagerUI/app/main.py", line 10, in main
+    return render_template("main.html",title="Landing Page")
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/templating.py", line 134, in render_template
+    context, ctx.app)
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/templating.py", line 116, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/jinja2/environment.py", line 1008, in render
+    return self.environment.handle_exception(exc_info, True)
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/jinja2/environment.py", line 780, in handle_exception
+    reraise(exc_type, exc_value, tb)
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/jinja2/_compat.py", line 37, in reraise
+    raise value.with_traceback(tb)
+  File "/home/ubuntu/A2/ece1779A2/ManagerUI/app/templates/main.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "/home/ubuntu/A2/ece1779A2/ManagerUI/app/templates/base.html", line 11, in top-level template code
+    {% block content %}
+  File "/home/ubuntu/A2/ece1779A2/ManagerUI/app/templates/main.html", line 6, in block "content"
+    <li><a href="{{url_for('s3_list')}}">S3 Examples</a></li>
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/helpers.py", line 333, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/app.py", line 1805, in handle_url_build_error
+    reraise(exc_type, exc_value, tb)
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/_compat.py", line 33, in reraise
+    raise value
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/helpers.py", line 323, in url_for
+    force_external=external)
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/werkzeug/routing.py", line 1758, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 's3_list'. Did you mean 'ec2_list' instead?
+[2017-11-04 03:08:26 +0000] [2458] [INFO] Handling signal: int
+[2017-11-04 03:08:26 +0000] [2466] [INFO] Worker exiting (pid: 2466)
+[2017-11-04 03:08:26 +0000] [2463] [INFO] Worker exiting (pid: 2463)
+[2017-11-04 03:08:26 +0000] [2462] [INFO] Worker exiting (pid: 2462)
+[2017-11-04 03:08:26 +0000] [2467] [INFO] Worker exiting (pid: 2467)
+[2017-11-04 03:08:26 +0000] [2461] [INFO] Worker exiting (pid: 2461)
+[2017-11-04 03:08:26 +0000] [2468] [INFO] Worker exiting (pid: 2468)
+[2017-11-04 03:08:26 +0000] [2464] [INFO] Worker exiting (pid: 2464)
+[2017-11-04 03:08:26 +0000] [2465] [INFO] Worker exiting (pid: 2465)
+[2017-11-04 03:08:27 +0000] [2458] [INFO] Shutting down: Master
+[2017-11-04 03:08:30 +0000] [2697] [INFO] Starting gunicorn 19.6.0
+[2017-11-04 03:08:30 +0000] [2697] [INFO] Listening at: http://0.0.0.0:420 (2697)
+[2017-11-04 03:08:30 +0000] [2697] [INFO] Using worker: gevent
+[2017-11-04 03:08:30 +0000] [2700] [INFO] Booting worker with pid: 2700
+[2017-11-04 03:08:30 +0000] [2701] [INFO] Booting worker with pid: 2701
+[2017-11-04 03:08:30 +0000] [2702] [INFO] Booting worker with pid: 2702
+[2017-11-04 03:08:30 +0000] [2703] [INFO] Booting worker with pid: 2703
+[2017-11-04 03:08:30 +0000] [2704] [INFO] Booting worker with pid: 2704
+[2017-11-04 03:08:30 +0000] [2705] [INFO] Booting worker with pid: 2705
+[2017-11-04 03:08:30 +0000] [2706] [INFO] Booting worker with pid: 2706
+[2017-11-04 03:08:30 +0000] [2707] [INFO] Booting worker with pid: 2707
+[2017-11-04 03:08:42,006] ERROR in app: Exception on /ec2_examples [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/app.py", line 1982, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/app.py", line 1614, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/app.py", line 1517, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/_compat.py", line 33, in reraise
+    raise value
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/Desktop/ece1779/databases/venv/lib/python3.5/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/home/ubuntu/A2/ece1779A2/ManagerUI/app/ec2_examples.py", line 16, in ec2_list
+    ec2 = aws_ession.resource('ec2')
+NameError: name 'aws_ession' is not defined
+[2017-11-04 03:08:54 +0000] [2697] [INFO] Handling signal: int
+[2017-11-04 03:08:55 +0000] [2700] [INFO] Worker exiting (pid: 2700)
+[2017-11-04 03:08:55 +0000] [2704] [INFO] Worker exiting (pid: 2704)
+[2017-11-04 03:08:55 +0000] [2701] [INFO] Worker exiting (pid: 2701)
+[2017-11-04 03:08:55 +0000] [2703] [INFO] Worker exiting (pid: 2703)
+[2017-11-04 03:08:55 +0000] [2707] [INFO] Worker exiting (pid: 2707)
+[2017-11-04 03:08:55 +0000] [2706] [INFO] Worker exiting (pid: 2706)
+[2017-11-04 03:08:55 +0000] [2702] [INFO] Worker exiting (pid: 2702)
+[2017-11-04 03:08:55 +0000] [2705] [INFO] Worker exiting (pid: 2705)
+[2017-11-04 03:08:55 +0000] [2697] [INFO] Shutting down: Master
+[2017-11-04 03:09:25 +0000] [2801] [INFO] Starting gunicorn 19.6.0
+[2017-11-04 03:09:25 +0000] [2801] [INFO] Listening at: http://0.0.0.0:420 (2801)
+[2017-11-04 03:09:25 +0000] [2801] [INFO] Using worker: gevent
+[2017-11-04 03:09:25 +0000] [2804] [INFO] Booting worker with pid: 2804
+[2017-11-04 03:09:25 +0000] [2805] [INFO] Booting worker with pid: 2805
+[2017-11-04 03:09:25 +0000] [2806] [INFO] Booting worker with pid: 2806
+[2017-11-04 03:09:25 +0000] [2807] [INFO] Booting worker with pid: 2807
+[2017-11-04 03:09:25 +0000] [2808] [INFO] Booting worker with pid: 2808
+[2017-11-04 03:09:25 +0000] [2809] [INFO] Booting worker with pid: 2809
+[2017-11-04 03:09:26 +0000] [2810] [INFO] Booting worker with pid: 2810
+[2017-11-04 03:09:26 +0000] [2811] [INFO] Booting worker with pid: 2811

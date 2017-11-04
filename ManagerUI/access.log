@@ -1,0 +1,8 @@
+65.95.27.189 - - [04/Nov/2017:03:06:13 +0000] "GET / HTTP/1.1" 500 291 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+65.95.27.189 - - [04/Nov/2017:03:06:13 +0000] "GET /favicon.ico HTTP/1.1" 404 233 "http://52.90.202.113:420/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+65.95.27.189 - - [04/Nov/2017:03:08:38 +0000] "GET / HTTP/1.1" 200 449 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+65.95.27.189 - - [04/Nov/2017:03:08:38 +0000] "GET /static/flot/jquery.flot.js HTTP/1.1" 200 - "http://52.90.202.113:420/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+65.95.27.189 - - [04/Nov/2017:03:08:38 +0000] "GET /static/flot/jquery.js HTTP/1.1" 200 - "http://52.90.202.113:420/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+65.95.27.189 - - [04/Nov/2017:03:08:42 +0000] "GET /ec2_examples HTTP/1.1" 500 291 "http://52.90.202.113:420/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+65.95.27.189 - - [04/Nov/2017:03:09:36 +0000] "GET /ec2_examples HTTP/1.1" 200 3066 "http://52.90.202.113:420/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+65.95.27.189 - - [04/Nov/2017:03:09:42 +0000] "GET / HTTP/1.1" 200 449 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"

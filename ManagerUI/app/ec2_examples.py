@@ -11,11 +11,12 @@ from operator import itemgetter
 # Display an HTML list of all ec2 instances
 def ec2_list():
 
+    aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
     # create connection to ec2
-    ec2 = boto3.resource('ec2')
+    ec2 = aws_session.resource('ec2')
 
-#    instances = ec2.instances.filter(
-#        Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+    instances = ec2.instances.filter(
+        Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
 
     instances = ec2.instances.all()
 
