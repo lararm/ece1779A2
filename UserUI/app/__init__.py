@@ -6,8 +6,10 @@
 # Purpose: 	Initializing script for python
 ###########################################################
 from flask import Flask
+from app import config
 
 webapp = Flask(__name__)
+webapp.secret_key = config.SECRET_KEY
 
 from app import web
 from app import db

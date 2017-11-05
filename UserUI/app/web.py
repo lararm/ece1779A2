@@ -50,7 +50,7 @@ def homepage():
 
 @webapp.route('/transform_image', methods=['GET','POST'])
 def transforms():
-	print("#transform")
+	
 	# Get User Input
 	if request.method == 'GET':
 		return render_template("transforms.html")
@@ -63,7 +63,6 @@ def transforms():
 	username = escape(session['username'])
 
 	image_names = db.get_transforms(username,image_name)
-	print(image_name)
 
 	return render_template("transforms.html",image_names=image_names,username=username)
 
@@ -166,28 +165,11 @@ def upload_image_submit():
 
 	return redirect(url_for('homepage'))
 
-@webapp.route('/download_image_submit', methods=['POST'])
-def download_image_submit():
-	
-	#Get Session Information
-	username = escape(session['username'])
-
-	#Get User Input
-	filename  = request.form['filename']
-	filepath  = request.form['filepath']
-	transform = request.form['transform']
-
-	#Download Image from Virtual Disk
-	image = db.get_image(username,transform,filename)
-
-	return redirect(url_for('homepage'))
-
 @webapp.route('/delete_image_submit', methods=['POST'])
 def delete_image_submit():
 	
 	#Get Session Information
 	username = escape(session['username'])
-	print(username)
 
 	#Get User Input
 	filename = request.form['filename']
@@ -227,7 +209,6 @@ def file_upload_submit():
 	new_file = request.files['image']
 	image_name = new_file.filename
 	image_type = new_file.content_type
-	print(new_file)
 	                                                    
 	# If user does not select file, browser also
 	# submit a empty part without filename
@@ -263,6 +244,3 @@ def file_upload_submit():
 	session['username'] = request.form['username']
 	return redirect(url_for('homepage'))
 
-def allowed_file(filename): #FIXME TODO rewrite this function to use image_type
-	return '.' in filename and \
-		   filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
