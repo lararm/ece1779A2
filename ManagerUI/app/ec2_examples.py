@@ -22,7 +22,7 @@ def ec2_list():
 
     #Display S3 info
     # Let's use Amazon S3
-    s3 = boto3.resource('s3')
+    s3 = aws_session.resource('s3')
 
     # Print out bucket names
     buckets = s3.buckets.all()
@@ -139,13 +139,21 @@ def ec2_view(id):
 # Start a new EC2 instance
 def ec2_create():
 
-    ec2 = boto3.resource('ec2')
+    aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
+    ec2 = aws_session.resource('ec2')
 
-    ec2.create_instances(ImageId=config.ami_id, MinCount=1, MaxCount=1)
+    ec2.create_instances( ImageId           = config.EC2_ami_id,
+			  MinCount          = config.EC2_num_instances,
+                          MaxCount          = config.EC2_num_instances,
+                          UserData          = config.EC2_user_data,
+			  InstanceType      = config.EC2_instance_type,
+                          KeyName           = config.EC2_key_name,
+			  SubnetId          = config.EC2_subnet_id,
+			  SecurityGroupIds  = config.EC2_security_group_ids,
+			  Monitoring        = {'Enabled': config.EC2_monitoring},
+			  TagSpecifications = [{ 'ResourceType':'instance', 'Tags':[{ 'Key':config.EC2_tagkey, 'Value':config.EC2_tagvalue },]},])
 
     return redirect(url_for('ec2_list'))
-
-
 
 @webapp.route('/ec2_examples/delete/<id>',methods=['POST'])
 # Terminate a EC2 instance
