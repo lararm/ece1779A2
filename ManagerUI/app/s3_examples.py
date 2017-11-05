@@ -1,5 +1,6 @@
 from flask import render_template, redirect, url_for, request
 from app import webapp
+from app import config
 
 import boto3
 
@@ -7,7 +8,8 @@ import boto3
 # Display an HTML list of all s3 buckets.
 def s3_list():
     # Let's use Amazon S3
-    s3 = boto3.resource('s3')
+    aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
+    s3 = aws_session.resource('s3')
 
     # Print out bucket names
     buckets = s3.buckets.all()
@@ -23,7 +25,8 @@ def s3_list():
 @webapp.route('/s3_examples/<id>',methods=['GET'])
 #Display details about a specific bucket.
 def s3_view(id):
-    s3 = boto3.resource('s3')
+    aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
+    s3 = aws_session.resource('s3')
 
     bucket = s3.Bucket(id)
 
@@ -50,7 +53,8 @@ def s3_upload(id):
     if new_file.filename == '':
         return redirect(url_for('s3_view', id=id))
 
-    s3 = boto3.client('s3')
+    aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
+    s3 = aws_session.client('s3')
 
     s3.upload_fileobj(new_file, id, new_file.filename)
 

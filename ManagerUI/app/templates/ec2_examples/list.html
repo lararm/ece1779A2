@@ -51,7 +51,7 @@
 
     {% for instance in instances %}
         <tr>
-        {%  if( instance.tags[0]['Value'] == 'A2WorkerNode' ) %}
+        {%  if(( instance.tags[0]['Value'] == 'A2WorkerNode' ) and (instance.state['Name'] != 'terminated')) %}
             <td>{{ instance.tags[0]['Value'] }}</td>
 	    <td>{{ instance.id }}</td>
             <td>{{ instance.instance_type }}</td>
