@@ -17,10 +17,21 @@ def ec2_list():
 
     instances = ec2.instances.filter(
         Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
-
     instances = ec2.instances.all()
 
-    return render_template("ec2_examples/list.html",title="EC2 Instances",instances=instances)
+    #Display S3 info
+    # Let's use Amazon S3
+    s3 = boto3.resource('s3')
+
+    # Print out bucket names
+    buckets = s3.buckets.all()
+
+    for b in buckets:
+        name = b.name
+
+    buckets = s3.buckets.all()
+
+    return render_template("ec2_examples/list.html",title="EC2 Instances",instances=instances,buckets=buckets,mananger=mananger)
 
 
 @webapp.route('/ec2_examples/<id>',methods=['GET'])

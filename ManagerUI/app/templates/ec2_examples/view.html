@@ -1,30 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
     <form action='{{url_for("ec2_list")}}' method='get'>
-        <input type='submit' value='Back' />
+        <br>
+        <input type='submit' value='Back' class="btn btn-primary"/>
     </form>
 
-    <table>
-        <tr><td>ID</td><td> {{ instance.id }}</td></tr>
-        <tr><td>Image AMI ID</td><td> {{ instance.image_id }}</td></tr>
-        <tr><td>Key Pair </td><td> {{ instance.key_name }}</td></tr>
-        <tr><td>Public IP Address</td><td>{{ instance.public_ip_address }}</td></tr>
-        <tr><td>State</td><td>{{ instance.state['Name'] }}</td></tr>
+    <table class="table">
+        <tr><td><b>ID<b></td><td> {{ instance.id }}</td></tr>
+        <tr><td><b>Image AMI ID</b></td><td> {{ instance.image_id }}</td></tr>
+        <tr><td><b>Key Pair </b></td><td> {{ instance.key_name }}</td></tr>
+        <tr><td><b>Public IP Address</b></td><td>{{ instance.public_ip_address }}</td></tr>
+        <tr><td><b>State</b></td><td>{{ instance.state['Name'] }}</td></tr>
     </table>
 
-
     <h2>CPU</h2>
-
-    <div id="cpu_plot" style="width:300px;height:150px"></div>
+    <div id="cpu_plot" style="width:700px;height:300px"></div>
+    <br>
+    <br>
 
     <h2>Network In</h2>
-
-    <div id="net_in_plot" style="width:300px;height:150px"></div>
-
+    <div id="net_in_plot" style="width:700px;height:300px"></div>
+    <br>
+    <br>
 
     <h2>Network Out</h2>
-
-    <div id="net_out_plot" style="width:300px;height:150px"></div>
+    <div id="net_out_plot" style="width:700px;height:300px"></div>
 
 
     <script>

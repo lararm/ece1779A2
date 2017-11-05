@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 
-    <table />
+    <table class="table table-hover"/>
     <thead>
        <th>Name</th>
        <th>Creation Time</th>
+       <th></th>
     </thead>
     {% for bucket in buckets %}
         <tr>
@@ -12,7 +13,7 @@
             <td>{{ bucket.creation_date }}</td>
             <td>
                 <form action="{{url_for('s3_view',id=bucket.name)}}" method='get'>
-                    <input type='submit' value='Details' />
+                    <input type='submit' value='Details' class="btn btn-info"/>
                 </form>
             </td>
         </tr>
