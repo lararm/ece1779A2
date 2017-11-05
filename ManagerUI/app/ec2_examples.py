@@ -44,11 +44,13 @@ def ec2_list():
 @webapp.route('/ec2_examples/<id>',methods=['GET'])
 #Display details about a specific instance.
 def ec2_view(id):
-    ec2 = boto3.resource('ec2')
+
+    aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
+    ec2 = aws_session.resource('ec2')
 
     instance = ec2.Instance(id)
 
-    client = boto3.client('cloudwatch')
+    client = aws_session.client('cloudwatch')
 
     metric_name = 'CPUUtilization'
 
@@ -159,7 +161,8 @@ def ec2_create():
 # Terminate a EC2 instance
 def ec2_destroy(id):
     # create connection to ec2
-    ec2 = boto3.resource('ec2')
+    aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
+    ec2 = aws_session.resource('ec2')
 
     ec2.instances.filter(InstanceIds=[id]).terminate()
 
