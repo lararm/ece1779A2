@@ -5,6 +5,7 @@ import boto3
 from app import config
 from datetime import datetime, timedelta
 from operator import itemgetter
+from app import elb
 
 
 @webapp.route('/ec2_examples',methods=['GET'])
@@ -31,8 +32,13 @@ def ec2_list():
 
     buckets = s3.buckets.all()
 
-    mananger = config.MANANGER_ID
-    return render_template("ec2_examples/list.html",title="EC2 Instances",instances=instances,buckets=buckets,mananger=mananger)
+    #Add instance to elb
+    #elb.elb_add_instance('i-010cee1c733265058')
+    #Remove instance from elb
+    #elb.elb_remove_instance('i-010cee1c733265058')
+
+    return render_template("ec2_examples/list.html",title="EC2 Instances",instances=instances,buckets=buckets,mananger=config.MANANGER_ID,
+                           database=config.DATABASE_ID)
 
 
 @webapp.route('/ec2_examples/<id>',methods=['GET'])
@@ -51,11 +57,8 @@ def ec2_view(id):
     #    DiskReadOps, CPUCreditBalance, CPUCreditUsage, StatusCheckFailed,
     #    StatusCheckFailed_Instance, StatusCheckFailed_System
 
-
     namespace = 'AWS/EC2'
     statistic = 'Average'                   # could be Sum,Maximum,Minimum,SampleCount,Average
-
-
 
     cpu = client.get_metric_statistics(
         Period=1 * 60,

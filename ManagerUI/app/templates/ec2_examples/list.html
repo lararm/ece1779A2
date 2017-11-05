@@ -16,7 +16,7 @@
     </thead> 
     {% for instance in instances %}
         <tr>
-            {%   if( instance.id != mananger) %}
+            {%   if( instance.id != mananger and instance.id != database) %}
             <td>{{ instance.id }}</td>
             <td>{{ instance.instance_type }}</td>
             <td>{{ instance.placement['AvailabilityZone']}}</td>
@@ -34,6 +34,19 @@
         {% endif %}
          {%   if( instance.id == mananger) %}
              <td><b>Mananger</b> {{ instance.id }}</td>
+            <td>{{ instance.instance_type }}</td>
+            <td>{{ instance.placement['AvailabilityZone']}}</td>
+            <td>{{ instance.state['Name'] }}</td>
+            <td>
+                <form action="{{url_for('ec2_view',id=instance.id)}}" method='get'>
+                    <input type='submit' value='Details' class="btn btn-info" />
+                </form>
+            </td>
+            <td>
+            </td>
+        {% endif %}
+          {%   if( instance.id == database) %}
+             <td><b>Database</b> {{ instance.id }}</td>
             <td>{{ instance.instance_type }}</td>
             <td>{{ instance.placement['AvailabilityZone']}}</td>
             <td>{{ instance.state['Name'] }}</td>

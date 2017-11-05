@@ -17,7 +17,7 @@ def s3_list():
 
     buckets = s3.buckets.all()
 
-    return render_template("s3_examples/list.html",title2="s3 Instances",buckets=buckets)
+    return render_template("s3_examples/list.html",title="s3 Instances",buckets=buckets)
 
 
 @webapp.route('/s3_examples/<id>',methods=['GET'])
