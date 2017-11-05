@@ -31,6 +31,7 @@ def ec2_list():
 
     buckets = s3.buckets.all()
 
+    mananger = config.MANANGER_ID
     return render_template("ec2_examples/list.html",title="EC2 Instances",instances=instances,buckets=buckets,mananger=mananger)
 
 
