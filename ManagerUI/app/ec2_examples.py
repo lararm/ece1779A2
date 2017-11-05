@@ -1,10 +1,9 @@
-from flask import render_template, redirect, url_for, request
-from app import webapp
-
 import boto3
-from app import config
+from flask import render_template, redirect, url_for, request
 from datetime import datetime, timedelta
 from operator import itemgetter
+from app import webapp
+from app import config
 from app import elb
 
 
@@ -31,11 +30,6 @@ def ec2_list():
         name = b.name
 
     buckets = s3.buckets.all()
-
-    #Add instance to elb
-    #elb.elb_add_instance('i-010cee1c733265058')
-    #Remove instance from elb
-    #elb.elb_remove_instance('i-010cee1c733265058')
 
     return render_template("ec2_examples/list.html",title="EC2 Instances",instances=instances,buckets=buckets,manager=config.MANAGER_ID,
                            database=config.DATABASE_ID)
