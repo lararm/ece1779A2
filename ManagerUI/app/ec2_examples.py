@@ -144,16 +144,19 @@ def ec2_create():
     aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
     ec2 = aws_session.resource('ec2')
 
-    ec2.create_instances( ImageId           = config.EC2_ami_id,
-			  MinCount          = config.EC2_num_instances,
-                          MaxCount          = config.EC2_num_instances,
-                          UserData          = config.EC2_user_data,
-			  InstanceType      = config.EC2_instance_type,
-                          KeyName           = config.EC2_key_name,
-			  SubnetId          = config.EC2_subnet_id,
-			  SecurityGroupIds  = config.EC2_security_group_ids,
-			  Monitoring        = {'Enabled': config.EC2_monitoring},
-			  TagSpecifications = [{ 'ResourceType':'instance', 'Tags':[{ 'Key':config.EC2_tagkey, 'Value':config.EC2_tagvalue },]},])
+    new_instances = ec2.create_instances( ImageId           = config.EC2_ami_id,
+			                 MinCount          = config.EC2_num_instances,
+                                         MaxCount          = config.EC2_num_instances,
+                                         UserData          = config.EC2_user_data,
+			                 InstanceType      = config.EC2_instance_type,
+                                         KeyName           = config.EC2_key_name,
+			                 SubnetId          = config.EC2_subnet_id,
+			                 SecurityGroupIds  = config.EC2_security_group_ids,
+			                 Monitoring        = {'Enabled': config.EC2_monitoring},
+			                 TagSpecifications = [{ 'ResourceType':'instance', 'Tags':[{ 'Key':config.EC2_tagkey, 'Value':config.EC2_tagvalue },]},])
+	
+    for instance in new_instances:
+        elb.elb_add_instance(instance.id) # Add New Instance to ELB
 
     return redirect(url_for('ec2_list'))
 
@@ -163,7 +166,11 @@ def ec2_destroy(id):
     # create connection to ec2
     aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
     ec2 = aws_session.resource('ec2')
-
-    ec2.instances.filter(InstanceIds=[id]).terminate()
-
+ 
+    del_instances = ec2.instances.filter(InstanceIds=[id])
+   
+    for instance in del_instances:
+        elb.elb_remove_instance(instance.id) # Remove Instance from ELB
+        instance.terminate()	             # Terminate Instance
+     
     return redirect(url_for('ec2_list'))
