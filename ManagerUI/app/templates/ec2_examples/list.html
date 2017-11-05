@@ -16,8 +16,8 @@
     </thead> 
     {% for instance in instances %}
         <tr>
-            {%   if( instance.id != mananger and instance.id != database) %}
-            <td>{{ instance.id }}</td>
+            {%   if( instance.id != manager and instance.id != database) %}
+            <td>{{ instance.tags[0]['Value'] }}</td>
             <td>{{ instance.instance_type }}</td>
             <td>{{ instance.placement['AvailabilityZone']}}</td>
             <td>{{ instance.state['Name'] }}</td>
@@ -32,7 +32,7 @@
                 </form>
             </td>
         {% endif %}
-         {%   if( instance.id == mananger) %}
+         {%   if( instance.id == manager) %}
              <td><b>Manager</b> {{ instance.id }}</td>
             <td>{{ instance.instance_type }}</td>
             <td>{{ instance.placement['AvailabilityZone']}}</td>

@@ -37,7 +37,7 @@ def ec2_list():
     #Remove instance from elb
     #elb.elb_remove_instance('i-010cee1c733265058')
 
-    return render_template("ec2_examples/list.html",title="EC2 Instances",instances=instances,buckets=buckets,mananger=config.MANANGER_ID,
+    return render_template("ec2_examples/list.html",title="EC2 Instances",instances=instances,buckets=buckets,manager=config.MANAGER_ID,
                            database=config.DATABASE_ID)
 
 
