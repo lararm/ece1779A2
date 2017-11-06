@@ -1,4 +1,5 @@
 import boto3
+import mysql.connector
 from flask import render_template, redirect, url_for, request
 from datetime import datetime, timedelta
 from operator import itemgetter
@@ -6,7 +7,6 @@ from app import webapp
 from app import config
 from app import elb
 from app import cloudWatch
-from app import clear
 import threading
 
 global CW_THRESHOLD
@@ -178,6 +178,31 @@ def ec2_destroy(id):
 @webapp.route('/ec2_examples/deleteAll/', methods=['POST'])
 # Terminate all instances and clear S3 data
 def ec2_delete_all():
-   print("#Delete All")
-   clear.clear_user_data()
-   return redirect(url_for('ec2_list'))
+    
+    print("Deleting All User Data")
+    # Open DB Connection
+    cnx = mysql.connector.connect(user=config.DB_USER, password=config.DB_PASS, host=config.DB_HOST, database=config.DB_NAME)
+    cursor = cnx.cursor()
+    
+    # Execute DB Setup Script
+    try:
+        cursor.execute("drop table images;")
+        cursor.execute("drop table users;")
+        cursor.execute("CREATE TABLE users (id INT NOT NULL AUTO_INCREMENT, username char(100) NOT NULL, passhash char(100) NOT NULL, passsalt char(100) NOT NULL, PRIMARY KEY (id)) ENGINE = InnoDB;")
+        cursor.execute("CREATE TABLE images(userid INT, imagename char(100) NOT NULL, orig char(100) NOT NULL, redblueshift char(100) NOT NULL, grayscale char(100) NOT NULL, overexposed char(100) NOT NULL, INDEX par_ind (userid), FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE) ENGINE = InnoDB;")
+        cnx.commit()
+    except:
+        cnx.rollback
+
+    # Close db connection
+    cursor.close()
+    cnx.close()
+    
+    # Create an S3 client
+    s3 = boto3.resource('s3', aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
+    bucket = s3.Bucket(config.S3_ID)
+    
+    # Delete data in bucket
+    bucket.objects.all().delete()
+
+    return redirect(url_for('ec2_list'))
