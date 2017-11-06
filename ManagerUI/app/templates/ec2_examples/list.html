@@ -1,14 +1,41 @@
 {% extends "base.html" %}
 {% block content %}
 
+    <h1>Auto Scaling Policy </h2>
+    <br>
+    
+    <h1>User Data</h2>
+    <form action="{{url_for('ec2_delete_all')}}" method="post" onsubmit='return confirm("Are you sure?")'>
+        <input type="submit" value="Delete All User Data" class="btn btn-danger">
+    </form>
+    <br>
+    
+    <h1>S3 Instances</h2>
+    <table class="table table-hover"/>
+        <thead>
+           <th>Name</th>
+           <th>Creation Time</th>
+           <th></th>
+        </thead>
+        {% for bucket in buckets %}
+            <tr>
+                <td>{{ bucket.name }}</td>
+                <td>{{ bucket.creation_date }}</td>
+                <td>
+                    <form action="{{url_for('s3_view',id=bucket.name)}}" method='get'>
+                        <input type='submit' value='Details' class="btn btn-info"/>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    <br>   
+
+    <h1>EC2 Instance Information </h2>
     <form action="{{url_for('ec2_create')}}" method="post">
-        <br>
         <input type="submit" value="New" class="btn btn-primary">
     </form>
-    <form action="{{url_for('ec2_delete_all')}}" method="post">
-        <br>
-        <input type="submit" value="DeleteAll" class="btn btn-danger">
-    </form>
+
     <table class="table table-hover" />
     <thead>
        <th>Name</th>
@@ -76,34 +103,5 @@
 
     {% endfor %}
     </table>
-
     <br>
-    <br>
-
-    <h1>CloudWatch thresholds</h2>
-
-
-    <br>
-    <br>
-    <h1>S3 Instances</h2>
-    <table class="table table-hover"/>
-        <thead>
-           <th>Name</th>
-           <th>Creation Time</th>
-           <th></th>
-        </thead>
-        {% for bucket in buckets %}
-            <tr>
-                <td>{{ bucket.name }}</td>
-                <td>{{ bucket.creation_date }}</td>
-                <td>
-                    <form action="{{url_for('s3_view',id=bucket.name)}}" method='get'>
-                        <input type='submit' value='Details' class="btn btn-info"/>
-                    </form>
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
-
-
 {% endblock %}

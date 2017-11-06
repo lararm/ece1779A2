@@ -42,7 +42,7 @@ def ec2_list():
              if(( instance.tags[0]['Value'] == 'A2WorkerNode' ) and (instance.state['Name'] != 'terminated')):
                 workers_list.append(instance.id)
 
-    return render_template("ec2_examples/list.html", title="EC2 Instances", instances=instances, buckets=buckets,
+    return render_template("ec2_examples/list.html", title="Manager UI Dashboard", instances=instances, buckets=buckets,
                            manager=config.MANAGER_ID,
                            database=config.DATABASE_ID)
 
