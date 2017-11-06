@@ -1,73 +1,64 @@
 import boto3
-from app import config
-from datetime import datetime, timedelta
 import json
 import threading
+import time
+from app import config
+from datetime import datetime, timedelta
 
 def get_instances_cpu_avg():
-    threading.Timer(60.00, get_instances_cpu_avg).start()
-    aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
-    # create connection to ec2
-    ec2 = aws_session.resource('ec2')
 
-    instances = ec2.instances.filter(
-        Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
-    instances = ec2.instances.all()
+    while (True):
+        
+        # Create EC2 Resource
+        ec2 = boto3.resource('ec2',aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
 
-    # Test CloudWatch avgs
-    intances_ids = []
-    for instance in instances:
-        # filter db and mananger
-        if (instance.id != config.DATABASE_ID and instance.id != config.MANAGER_ID):
+	# Get All EC2 Instances
+        instances = ec2.instances.all()
+
+        # Test CloudWatch avgs
+        instances_ids = []
+        for instance in instances:
             if ((instance.tags[0]['Value'] == 'A2WorkerNode') and (instance.state['Name'] != 'terminated')):
-                intances_ids.append(instance.id)
+                instances_ids.append(instance.id)
 
+        avgs = []
+        n_instances = 0
 
-    aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
-    ec2 = aws_session.resource('ec2')
-    avgs = []
-    n_instances = 0
+        #Get minute avg CPU utilization for every worker instance
+        for id in instances_ids:
+            instance    = ec2.Instance(id)
+            client      = boto3.client('cloudwatch',aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
+            metric_name = 'CPUUtilization'
+            namespace   = 'AWS/EC2'
+            statistic   = 'Average'  # could be Sum,Maximum,Minimum,SampleCount,Average
 
-    #Get minute avg CPU utilization for every worker instance
-    for id in intances_ids:
-        instance = ec2.Instance(id)
-        client = aws_session.client('cloudwatch')
-        metric_name = 'CPUUtilization'
+            cpu = client.get_metric_statistics(
+                Period=1 * 60,
+                StartTime=datetime.utcnow() - timedelta(seconds=1 * 60),
+                EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
+                MetricName=metric_name,
+                Namespace=namespace,  # Unit='Percent',
+                Statistics=[statistic],
+                Dimensions=[{'Name': 'InstanceId', 'Value': id}]
+            )
 
-        ##    CPUUtilization, NetworkIn, NetworkOut, NetworkPacketsIn,
-        #    NetworkPacketsOut, DiskWriteBytes, DiskReadBytes, DiskWriteOps,
-        #    DiskReadOps, CPUCreditBalance, CPUCreditUsage, StatusCheckFailed,
-        #    StatusCheckFailed_Instance, StatusCheckFailed_System
+            datapoints = cpu['Datapoints']
+            if datapoints:
+                data =datapoints[0]
+                average = data["Average"]
+                avgs.append(average)
+            n_instances = n_instances + 1
+        
+        sum_avg = 0
+        for avg in avgs:
+            sum_avg = sum_avg + avg
+        
+        if (n_instances):
+            instances_average = sum_avg/n_instances
+        else:
+            instances_average = 0
+        print("cpu utilization avg:%f" % (instances_average))
 
-        namespace = 'AWS/EC2'
-        statistic = 'Average'  # could be Sum,Maximum,Minimum,SampleCount,Average
+	#FIXME Insert Autocaling CODE HERE
 
-        cpu = client.get_metric_statistics(
-            Period=1 * 60,
-            StartTime=datetime.utcnow() - timedelta(seconds=1 * 60),
-            EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
-            MetricName=metric_name,
-            Namespace=namespace,  # Unit='Percent',
-            Statistics=[statistic],
-            Dimensions=[{'Name': 'InstanceId', 'Value': id}]
-        )
-
-        cpu_stats = []
-        datapoints = cpu['Datapoints']
-       # print(datapoints)
-        if datapoints:
-            data =datapoints[0]
-            average = data["Average"]
-            avgs.append(average)
-        n_instances = n_instances + 1
-    # print(avgs)
-    # print(n_instances)
-    sum_avg = 0
-    for avg in avgs:
-        sum_avg = sum_avg + avg
-
-    instances_average = sum_avg/n_instances
-    print("cpu utilization avg:")
-    print(instances_average)
-
-get_instances_cpu_avg()
+        time.sleep(5) #FIXME set to 60 once measurement code is accurate
