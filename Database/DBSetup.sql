@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS A2;
 USE A2;
-#drop table images;
-#drop table users;
+drop table images;
+drop table users;
 CREATE TABLE users
 (
 	id INT NOT NULL AUTO_INCREMENT,

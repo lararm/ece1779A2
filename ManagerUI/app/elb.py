@@ -10,10 +10,8 @@ def elb_add_instance(instanceId):
     elbs = elbList.describe_load_balancers()
     for elb in elbs['LoadBalancerDescriptions']:
         elb_mananger = elb
-        print(
-            'ELB DNS Name : ' + elb['DNSName'])
 
-    # Adding instances to EBL:
+    # Adding instances to ELB:
     response = elbList.register_instances_with_load_balancer(
         LoadBalancerName='A2LB',
         Instances=[
@@ -32,10 +30,8 @@ def elb_remove_instance(instanceId):
     elbs = elbList.describe_load_balancers()
     for elb in elbs['LoadBalancerDescriptions']:
         elb_mananger = elb
-        print(
-            'ELB DNS Name : ' + elb['DNSName'])
 
-    # Removing instance from EBL:
+    # Removing instance from ELB:
     response = elbList.deregister_instances_from_load_balancer(
         LoadBalancerName='A2LB',
         Instances=[
