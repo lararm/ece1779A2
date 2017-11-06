@@ -5,6 +5,10 @@
         <br>
         <input type="submit" value="New" class="btn btn-primary">
     </form>
+    <form action="{{url_for('ec2_delete_all')}}" method="post">
+        <br>
+        <input type="submit" value="DeleteAll" class="btn btn-danger">
+    </form>
     <table class="table table-hover" />
     <thead>
        <th>Name</th>

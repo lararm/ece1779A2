@@ -6,6 +6,7 @@ from app import webapp
 from app import config
 from app import elb
 from app import cloudWatch
+from app import clear
 import threading
 
 global CW_THRESHOLD
@@ -173,3 +174,10 @@ def ec2_destroy(id):
         instance.terminate()  # Terminate Instance
 
     return redirect(url_for('ec2_list'))
+
+@webapp.route('/ec2_examples/deleteAll/', methods=['POST'])
+# Terminate all instances and clear S3 data
+def ec2_delete_all():
+   print("#Delete All")
+   clear.clear_user_data()
+   return redirect(url_for('ec2_list'))
