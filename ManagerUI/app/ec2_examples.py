@@ -7,6 +7,10 @@ from datetime import datetime, timedelta
 from operator import itemgetter
 from app import elb
 from app import cloudWatch
+import threading
+
+global CW_THRESHOLD
+
 
 @webapp.route('/ec2_examples', methods=['GET'])
 # Display an HTML list of all ec2 instances
@@ -42,8 +46,6 @@ def ec2_list():
         if (instance.id != config.DATABASE_ID and instance.id != config.MANAGER_ID):
              if(( instance.tags[0]['Value'] == 'A2WorkerNode' ) and (instance.state['Name'] != 'terminated')):
                 workers_list.append(instance.id)
-
-    instances_avg = cloudWatch.get_instances_cpu_avg(workers_list)
 
     return render_template("ec2_examples/list.html", title="EC2 Instances", instances=instances, buckets=buckets,
                            manager=config.MANAGER_ID,

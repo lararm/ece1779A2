@@ -2,8 +2,26 @@ import boto3
 from app import config
 from datetime import datetime, timedelta
 import json
+import threading
 
-def get_instances_cpu_avg(intances_ids):
+def get_instances_cpu_avg():
+    threading.Timer(60.00, get_instances_cpu_avg).start()
+    aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
+    # create connection to ec2
+    ec2 = aws_session.resource('ec2')
+
+    instances = ec2.instances.filter(
+        Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+    instances = ec2.instances.all()
+
+    # Test CloudWatch avgs
+    intances_ids = []
+    for instance in instances:
+        # filter db and mananger
+        if (instance.id != config.DATABASE_ID and instance.id != config.MANAGER_ID):
+            if ((instance.tags[0]['Value'] == 'A2WorkerNode') and (instance.state['Name'] != 'terminated')):
+                intances_ids.append(instance.id)
+
 
     aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
     ec2 = aws_session.resource('ec2')
@@ -49,6 +67,7 @@ def get_instances_cpu_avg(intances_ids):
         sum_avg = sum_avg + avg
 
     instances_average = sum_avg/n_instances
+    print("cpu utilization avg:")
     print(instances_average)
 
-
+get_instances_cpu_avg()
