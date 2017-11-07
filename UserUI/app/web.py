@@ -5,7 +5,7 @@
 # Date:		October 2017
 # Purpose: 	Webpage routes
 ###########################################################
-from flask import render_template, session, request, escape, redirect, url_for
+from flask import render_template, session, request, escape, redirect, url_for,flash
 from werkzeug.utils import secure_filename
 from app import webapp
 from app import db
@@ -14,7 +14,7 @@ import datetime
 import os
 import boto3
 
-ALLOWED_IMAGE_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_IMAGE_EXTENSIONS = set(['image/png', 'image/jpg', 'image/jpeg', 'image/gif'])
 @webapp.route('/')
 def main():
 	#session.clear()
@@ -134,17 +134,25 @@ def upload_image_submit():
 
 	# If user does not select file, browser also
 	# submit a empty part without filename
-	if image.filename == '':
-		return redirect(url_for('homepage', id=id))
+	if image_name == '':
+		flash("No image selected for upload.")
+		return redirect(url_for('homepage'))
 
+	# Check image file extension
+	if not valid_image_extension(image_type):
+		flash ("%s is not a valid image type. Must be of type [png,gif,jpeg,jpg]." % (image_type))
+		return redirect(url_for('homepage'))
+	
 	# Create an S3 client
 	s3 = boto3.client('s3', aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
 	id = config.AWS_ID
 
-	# upload image to S3
-	image_new_name = username + "/" + image.filename
-	s3.upload_fileobj(image, id, image_new_name,
-					  ExtraArgs={"Metadata": {"Content-Type": image_type}})
+	# Upload image to S3
+	image_new_name = username + "/" + image_name
+	s3.upload_fileobj( image,
+			   id,
+			   image_new_name,
+			   ExtraArgs={"Metadata": {"Content-Type": image_type}})
 	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': image_new_name},
 										   ExpiresIn=100)).split('?')[0]
 
@@ -203,26 +211,35 @@ def file_upload_submit():
 
 	# Attempt to Upload Image
 	if 'image' not in request.files:
+		flash("Image missing in upload request.")
 		return redirect(url_for('file_upload'))
 
 	# Get User Input
-	new_file = request.files['image']
-	image_name = new_file.filename
-	image_type = new_file.content_type
-	                                                    
+	image = request.files['image']
+	image_name = image.filename
+	image_type = image.content_type
+	 
 	# If user does not select file, browser also
 	# submit a empty part without filename
-	if new_file.filename == '':
-		return redirect(url_for('file_upload', id=id))
-
+	if image_name == '':
+		flash("No image selected for upload.")
+		return redirect(url_for('file_upload'))
+	
+	# Check image file exension	                                                                                                   
+	if not valid_image_extension(image_type):
+		flash ("%s is not a valid image type. Must be of type [png,gif,jpeg,jpg]." % (image_type))
+		return redirect(url_for('file_upload'))
+                                                   
 	# Create an S3 client
 	s3 = boto3.client('s3',aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
 	id = config.AWS_ID
 	                                                                                                                                   
 	# Upload image to S3
-	image_new_name = username + "/" + new_file.filename
-	s3.upload_fileobj(new_file, id, image_new_name,
-	ExtraArgs = {"Metadata": {"Content-Type":image_type }})
+	image_new_name = username + "/" + image_name
+	s3.upload_fileobj( image,
+			   id,
+			   image_new_name,
+			   ExtraArgs = {"Metadata": {"Content-Type":image_type }})
 	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': image_new_name},ExpiresIn=100)).split('?')[0]
 
 	# Upload Image URL to DB
@@ -231,7 +248,7 @@ def file_upload_submit():
 	# Download image
 	destpath = os.path.abspath('app/static/images')
 	new_image_path = os.path.join(destpath, image_name)
-	s3.download_file(id, image_name, new_image_path)
+	s3.download_file(id, image_new_name, new_image_path)
 
 	#Create Transforms
 	db.transform_image(new_image_path, username)
@@ -244,3 +261,10 @@ def file_upload_submit():
 	session['username'] = request.form['username']
 	return redirect(url_for('homepage'))
 
+def valid_image_extension(ext):
+
+	for extension in ALLOWED_IMAGE_EXTENSIONS:
+		if (ext == extension):
+			return True
+	
+	return False

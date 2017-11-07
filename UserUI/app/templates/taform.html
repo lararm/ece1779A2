@@ -39,6 +39,15 @@
                   <br><br>
                   <input type='submit' value='Upload'class="btn btn-success" >
                   <p></p>
+		{% with messages = get_flashed_messages()%}
+		  {% if messages %}
+		    {% for message in messages %}
+		      <div class="alert alert-warning">
+		        <strong>Warning! </strong>{{ message}}
+		      </div>
+		    {% endfor %}
+		  {% endif %}
+                {% endwith %}
                 </form>
             </div>
             <div class="col-md-4 col-sm-4 col-xs-12"></div>

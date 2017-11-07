@@ -46,6 +46,15 @@
                 <li>
                     <a href="#delete_user">Deactivate Account</a>
                 </li>
+                {% with messages = get_flashed_messages()%}
+                  {% if messages %}
+                    {% for message in messages %}
+                      <div class="alert alert-warning">
+                        <strong>Warning! </strong>{{ message}}
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
                 <li>
                      <form class = "form-container" method="post" action="logout_submit">
                      <button type="submit" value='logout' class="button2">Log out</button>

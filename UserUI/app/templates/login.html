@@ -34,6 +34,15 @@
                   </div>
                      <button type="submit" value='login' class="btn btn-success btn-block">Login</button>
                       <br>
+                      {% with messages = get_flashed_messages()%}
+                        {% if messages %}
+                          {% for message in messages %}
+                            <div class="alert alert-warning">
+                              <strong>Warning! </strong>{{ message}}
+                            </div>
+                          {% endfor %}
+                        {% endif %}
+                      {% endwith %}
                        <p class="box"><span>Not a member?</span>
                             <a href="{{ url_for('signup')}}" class="btn btn-link">Sign up</a>
                        </p>

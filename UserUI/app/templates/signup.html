@@ -34,9 +34,18 @@
                   </div>
                      <button type="submit" value='signup' class="btn btn-success btn-block">Sign Up</button>
                   <br>
+                  {% with messages = get_flashed_messages()%}
+                    {% if messages %}
+                      {% for message in messages %}
+			<div class="alert alert-warning">
+                          <strong>Warning! </strong>{{ message}}
+		        </div>
+                      {% endfor %}
+                    {% endif %}
+		  {% endwith %}
                 </form>
             </div>
             <div class="col-md-4 col-sm-4 col-xs-12"></div>
-            </div>
+    </div>
     <body>
 </html>

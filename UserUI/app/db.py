@@ -5,6 +5,7 @@
 # Date:		October 2017
 # Purpose: 	Database connection calls.
 ###########################################################
+from flask import flash
 from app import config
 from app import webapp
 import hashlib
@@ -25,6 +26,17 @@ def connector():
 
 
 def add_user(username, password):
+	
+	# Determine if User meets requirements
+	if (len(username) < 8):
+		flash ("Username must be atleast 8 characters long.")
+		return False
+	
+	# Determine if Password meets requirements
+	if (len(password) < 8):
+		flash ("Password must be atleast 8 characters long.")
+		return False
+
 	# Open db Connection
 	print("Checking if username %s is available..." % (username))
 	result = False;
@@ -36,10 +48,10 @@ def add_user(username, password):
 	matching_users = cursor.fetchall()
 
 	if (len(matching_users) == 1):
-		print("Sorry username %s is unavailable." % (username))
+		flash("Username %s is unavailable." % (username))
 
 	elif (len(matching_users) > 1):
-		print("More than 1 user with the same username:'%s'. Something bad happened!" % (username))
+		flash("More than 1 user with the same username:'%s'. Something bad happened!" % (username))
 
 	else:
 		print("Username Available.\nAdding Username: %s" % (username))
@@ -65,9 +77,9 @@ def add_user(username, password):
 
 
 def login_user(username, password):
+	
 	# Open db connection
 	print("Attempting to log in as %s..." % (username))
-	result = False;
 	cnx = connector()
 	cursor = cnx.cursor()
 
@@ -81,9 +93,11 @@ def login_user(username, password):
 
 	# Verify Credentials
 	if (len(matching_users) == 0):
-		print("User Does Not Exist")
+		flash("User %s does not exist" % (username))
+		return False
 	elif (len(matching_users) > 1):
-		print("More than 1 user with the same username:'%s'. Something bad happened!" % (username))
+		flash("More than 1 user with the same username:'%s'. Something bad happened!" % (username))
+		return False
 	else:
 		print("Verifying Credentials...")
 
@@ -96,11 +110,10 @@ def login_user(username, password):
 
 		if (passhash == newhash):
 			print("User %s authenticated!" % (username))
-			result = True
+			return True
 		else:
-			print("Password is incorrect!")
-
-	return result
+			flash("Password is incorrect!")
+			return False
 
 
 def delete_user(username, password):
@@ -246,7 +259,7 @@ def add_image(username, imagename, image_url):
 		cnx.commit()
 		result = True
 	except:
-		print("except")
+		flash("Upload image failed.")
 		cnx.rollback()
 
 	# Split the image name into rawname and extension
@@ -294,7 +307,6 @@ def get_imagelist(username):
 
 def delete_image(username, imagename):
 	# Delete image
-	print("#Delete image")
 	destpath = os.path.abspath('app/static/images')
 	filename = os.path.join(destpath, imagename)
 	if (os.path.exists(filename)):
