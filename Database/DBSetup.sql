@@ -13,11 +13,11 @@ PRIMARY KEY (id)
 CREATE TABLE images
 (
     userid INT,
-    imagename char(100) NOT NULL,
-    orig char(100) NOT NULL,
-    redblueshift char(100) NOT NULL,
-    grayscale char(100) NOT NULL,
-    overexposed char(100) NOT NULL,
+    imagename char(200) NOT NULL,
+    orig char(200) NOT NULL,
+    redblueshift char(200) NOT NULL,
+    grayscale char(200) NOT NULL,
+    overexposed char(200) NOT NULL,
     INDEX par_ind (userid),
     FOREIGN KEY (userid)
     REFERENCES users(id)
