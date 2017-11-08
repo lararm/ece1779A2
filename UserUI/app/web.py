@@ -191,12 +191,70 @@ def delete_image_submit():
 @webapp.route('/test/FileUpload', methods=['GET','POST'])
 def file_upload():
 
-    	#Check if user is already logged in
-	if 'username' in session:
-		print ("Session user is: %s" % escape(session['username']))
-		return redirect(url_for('homepage'))
+	if (request.method == 'GET'):
+		return render_template("taform.html")
 
-	return render_template("taform.html")
+	print ("Got a post request\n")
+	# Get User Input
+	username = request.form['userID']
+	userpass = request.form['password']
+
+	print ("verifying credentials\n")
+	# Verify Login Credentials
+	if not (db.login_user(username, userpass)):
+		return redirect(url_for('file_upload'))
+
+	print ("attempting to upload\n")
+	# Attempt to Upload Image
+	if 'uploadedfile' not in request.files:
+		flash("Image missing in upload request.")
+		return redirect(url_for('file_upload'))
+
+	print ("Getting image\n")
+	# Get User Input
+	image = request.files['uploadedfile']
+	image_name = image.filename
+	image_type = image.content_type
+	 
+	# If user does not select file, browser also
+	# submit a empty part without filename
+	if image_name == '':
+		flash("No image selected for upload.")
+		return redirect(url_for('file_upload'))
+	
+	print ("Checking file extension\n")
+	# Check image file exension	                                                                                                   
+	if not valid_image_extension(image_type):
+		flash ("%s is not a valid image type. Must be of type [png,gif,jpeg,jpg]." % (image_type))
+		return redirect(url_for('file_upload'))
+                                                   
+	# Create an S3 client
+	s3 = boto3.client('s3',aws_access_key_id=config.AWS_KEY,aws_secret_access_key=config.AWS_SECRET)
+	id = config.AWS_ID
+	                                                                                                                                   
+	# Upload image to S3
+	print ("Uploading image to s3\n")
+	image_new_name = username + "/" + image_name
+	s3.upload_fileobj( image,
+			   id,
+			   image_new_name,
+			   ExtraArgs = {"Metadata": {"Content-Type":image_type }})
+	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': image_new_name},ExpiresIn=100)).split('?')[0]
+
+	# Upload Image URL to DB
+	db.add_image(username,image_name, image_url)
+
+	# Download image
+	destpath = os.path.abspath('app/static/images')
+	new_image_path = os.path.join(destpath, image_name)
+	s3.download_file(id, image_new_name, new_image_path)
+
+	#Create Transforms
+	db.transform_image(new_image_path, username)
+
+	# Delete Images from Virtual Disk
+	if (db.delete_image(username, image_name)):
+		print("%s was deleted!" % (image_name))
 
 @webapp.route('/test/FileUploadSubmit', methods=['POST'])
 def file_upload_submit():
@@ -256,10 +314,6 @@ def file_upload_submit():
 	# Delete Images from Virtual Disk
 	if (db.delete_image(username, image_name)):
 		print("%s was deleted!" % (image_name))
-
-	# Both Login and Upload Successful
-	session['username'] = request.form['username']
-	return redirect(url_for('homepage'))
 
 def valid_image_extension(ext):
 
