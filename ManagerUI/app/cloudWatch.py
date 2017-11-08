@@ -7,6 +7,13 @@ from datetime import datetime, timedelta
 
 def get_instances_cpu_avg():
 
+
+    AUTO_UPPER_BOUND = config.AUTO_upper_bound
+    AUTO_LOWER_BOUND = config.AUTO_lower_bound
+    AUTO_SCALE_UP    = config.AUTO_scale_up   
+    AUTO_SCALE_DOWN  = config.AUTO_scale_down 
+
+
     while (True):
         
         # Create EC2 Resource
@@ -16,6 +23,7 @@ def get_instances_cpu_avg():
         instances = ec2.instances.all()
 
         # Test CloudWatch avgs
+	#FIXME change tags0 to for each tag, and look for name. In case a node goes down,the tag will be empty when it tries to retrieve data. Script will crash.
         instances_ids = []
         for instance in instances:
             if ((instance.tags[0]['Value'] == 'A2WorkerNode') and (instance.state['Name'] != 'terminated')):
@@ -59,6 +67,15 @@ def get_instances_cpu_avg():
             instances_average = 0
         print("cpu utilization avg:%f" % (instances_average))
 
+	#FIXME put actual auto scaling implementation here
+        if (instances_average >= AUTO_UPPER_BOUND):
+            print ("Over uppower limit, should increase nodes")
+            print ("Nodes could go from %d to %f" %(n_instances,n_instances*AUTO_SCALE_UP))
+        elif (instances_average <= AUTO_LOWER_BOUND):
+            print ("Below lower limit, should decrease nodes")
+            print ("Nodes could go from %d to %f" %(n_instances,n_instances/AUTO_SCALE_DOWN))
+        else:
+        	print ("In the sweet spot. %d nodes active" %(n_instances))
 	#FIXME Insert Autocaling CODE HERE
 
         time.sleep(5) #FIXME set to 60 once measurement code is accurate
