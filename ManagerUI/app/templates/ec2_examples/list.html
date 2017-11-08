@@ -1,16 +1,55 @@
 {% extends "base.html" %}
 {% block content %}
 
-    <h1>Auto Scaling Policy </h2>
     <br>
-    
-    <h1>User Data</h2>
+    <br>
+    <h2>Auto Scaling Policy </h2>
+    <br>
+   <a href="#" class="btn btn-primary active" role="button" aria-pressed="true">On</a>
+    <a href="#" class="btn btn-secondary active" role="button" aria-pressed="true"> Off</a>
+    <br>
+    <br>
+
+    <form role="form" class="form-inline">
+        <div class="row">
+            <div class="form-group col-md-4">
+                <label for="code">Upper Bound</label>
+                <input type="text" class="form-control input-normal" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col-md-4">
+                <label for="code" >Lower Bound</label>
+                <input type="text" class="form-control input-normal" />
+            </div>
+        </div>
+      <div class="row">
+            <div class="form-group col-md-4">
+                <label for="code">Scale Up</label>
+                <input type="text" class="form-control input-normal" />
+            </div>
+        </div>
+      <div class="row">
+            <div class="form-group col-md-4">
+                <label for="code">Scale Down</label>
+                <input type="text" class="form-control input-normal" />
+            </div>
+        </div>
+
+    </form>
+    <br>
+    <br>
+
+    <hr/>
+    <h2>User Data</h2>
     <form action="{{url_for('ec2_delete_all')}}" method="post" onsubmit='return confirm("Are you sure?")'>
         <input type="submit" value="Delete All User Data" class="btn btn-danger">
     </form>
     <br>
-    
-    <h1>S3 Instances</h2>
+    <br>
+    <hr/>
+    <h2>S3 Instances</h2>
     <table class="table table-hover"/>
         <thead>
            <th>Name</th>
@@ -30,8 +69,8 @@
         {% endfor %}
     </table>
     <br>   
-
-    <h1>EC2 Instance Information </h2>
+    <hr/>
+    <h2>EC2 Instance Information </h2>
     <form action="{{url_for('ec2_create')}}" method="post">
         <input type="submit" value="New" class="btn btn-primary">
     </form>
