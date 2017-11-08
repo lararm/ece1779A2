@@ -194,23 +194,19 @@ def file_upload():
 	if (request.method == 'GET'):
 		return render_template("taform.html")
 
-	print ("Got a post request\n")
 	# Get User Input
 	username = request.form['userID']
 	userpass = request.form['password']
 
-	print ("verifying credentials\n")
 	# Verify Login Credentials
 	if not (db.login_user(username, userpass)):
 		return redirect(url_for('file_upload'))
 
-	print ("attempting to upload\n")
 	# Attempt to Upload Image
 	if 'uploadedfile' not in request.files:
 		flash("Image missing in upload request.")
 		return redirect(url_for('file_upload'))
 
-	print ("Getting image\n")
 	# Get User Input
 	image = request.files['uploadedfile']
 	image_name = image.filename
@@ -222,7 +218,6 @@ def file_upload():
 		flash("No image selected for upload.")
 		return redirect(url_for('file_upload'))
 	
-	print ("Checking file extension\n")
 	# Check image file exension	                                                                                                   
 	if not valid_image_extension(image_type):
 		flash ("%s is not a valid image type. Must be of type [png,gif,jpeg,jpg]." % (image_type))
@@ -233,7 +228,6 @@ def file_upload():
 	id = config.AWS_ID
 	                                                                                                                                   
 	# Upload image to S3
-	print ("Uploading image to s3\n")
 	image_new_name = username + "/" + image_name
 	s3.upload_fileobj( image,
 			   id,
