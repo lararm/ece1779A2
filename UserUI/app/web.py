@@ -249,7 +249,7 @@ def file_upload():
 	image_url = (s3.generate_presigned_url('get_object', Params={'Bucket': id, 'Key': image_new_name},ExpiresIn=100)).split('?')[0]
 
 	# Upload Image URL to DB
-	db.add_image(username,image_name, image_url)
+	db.add_image(username,unique_name, image_url)
 
 	# Download image
 	destpath = os.path.abspath('app/static/images')
