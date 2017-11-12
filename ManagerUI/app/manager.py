@@ -176,7 +176,7 @@ def ec2_destroy(id):
 
 @webapp.route('/ec2_examples/deleteAll/', methods=['POST'])
 # Terminate all instances and clear S3 data
-def ec2_delete_all():
+def delete_all_userdata():
     
     print("Deleting All User Data")
     # Open DB Connection
