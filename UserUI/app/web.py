@@ -262,6 +262,8 @@ def file_upload():
 	# Delete Images from Virtual Disk
 	if (db.delete_image(username, unique_name)):
 		print("%s was deleted!" % (unique_name))
+	
+	return 'OK'
 
 @webapp.route('/test/FileUploadSubmit', methods=['POST'])
 def file_upload_submit():
