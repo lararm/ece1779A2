@@ -3,10 +3,9 @@ import mysql.connector
 from flask import render_template, redirect, url_for, request
 from datetime import datetime, timedelta
 from operator import itemgetter
-from app import webapp
 from app import config
+from app import webapp
 from app import elb
-from app import cloudWatch
 import threading
 
 global CW_THRESHOLD
