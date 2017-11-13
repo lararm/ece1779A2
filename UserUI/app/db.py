@@ -79,7 +79,7 @@ def add_user(username, password):
 def login_user(username, password):
 	
 	# Open db connection
-	print("Attempting to log in as %s..." % (username))
+	#print("Attempting to log in as %s..." % (username))
 	cnx = connector()
 	cursor = cnx.cursor()
 
@@ -99,7 +99,7 @@ def login_user(username, password):
 		flash("More than 1 user with the same username:'%s'. Something bad happened!" % (username))
 		return False
 	else:
-		print("Verifying Credentials...")
+		#print("Verifying Credentials...")
 
 		# Recreate Hashed Password
 		for row in matching_users:
@@ -109,7 +109,7 @@ def login_user(username, password):
 		newhash = hash_object.hexdigest()
 
 		if (passhash == newhash):
-			print("User %s authenticated!" % (username))
+			#print("User %s authenticated!" % (username))
 			return True
 		else:
 			flash("Password is incorrect!")
@@ -239,17 +239,17 @@ def add_image(username, imagename, image_url):
 	image_orig = image_url
 
 	# Open db connection
-	print("Uploading image %s ..." % (imagename))
+	#print("Uploading image %s ..." % (imagename))
 	result = False
 	cnx = connector()
 	cursor = cnx.cursor()
 
 	# Determine If Image Exists
-	if (image_exists(username, imagename)):
-		# Close db connection
-		cursor.close()
-		cnx.close()
-		return result
+	# if (image_exists(username, imagename)):
+	# 	# Close db connection
+	# 	cursor.close()
+	# 	cnx.close()
+	# 	return result
 
 	# Insert filename to images table
 	try:
@@ -265,16 +265,23 @@ def add_image(username, imagename, image_url):
 	# Split the image name into rawname and extension
 	(rawname, ext) = os.path.splitext(imagename)
 
+	update_prefix = "UPDATE images SET "
+	update_suffix = " WHERE imagename = '%s'" % (imagename)
+	update_middle = ""
 	## Update row with paths to each transform
 	for transform in IMAGE_TRANSFORMS:
 		transformed_image = config.AWS_URL + username + "/" + rawname + "_" + transform + ext
-		try:
-			cursor.execute("UPDATE images SET %s = '%s' WHERE imagename = '%s'" % (
-			transform, re.escape(transformed_image), imagename))
-			cnx.commit()
-			result = True
-		except:
-			cnx.rollback()
+		update_middle += " %s = '%s'," % (transform, re.escape(transformed_image))
+
+	print ("UPDATE COMMAND")
+	update_command = update_prefix + update_middle[:-1] + update_suffix
+	print (update_command)
+	try:
+		cursor.execute(update_command)
+		cnx.commit()
+		result = True
+	except:
+		cnx.rollback()
 
 	# Close db connection
 	cursor.close()
