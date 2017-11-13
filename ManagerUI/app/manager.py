@@ -62,14 +62,14 @@ def ec2_list():
     # Close DB Connection
     cursor.close()
     cnx.close()
-	
     return render_template("ec2_examples/list.html", title="Manager UI Dashboard", instances=instances, buckets=buckets,
                            manager=config.MANAGER_ID,
                            database=config.DATABASE_ID,
                            upperBound = AUTO_upper_bound,
                            lowerBound = AUTO_lower_bound,
                            scaleUp = AUTO_scale_up,
-                           scaleDown = AUTO_scale_down
+                           scaleDown = AUTO_scale_down,
+                           scaleStatus = AUTO_scale
                            )
 
 
@@ -307,26 +307,20 @@ def scaling_modified():
     cursor.close()
     cnx.close()
 
-
-
-    return render_template("ec2_examples/list.html", title="Manager UI Dashboard",
-                           upperBound = AUTO_upper_bound,
-                           lowerBound = AUTO_lower_bound,
-                           scaleUp = AUTO_scale_up,
-                           scaleDown = AUTO_scale_down
-                           )
-    # get_instances_cpu_avg
+    return redirect(url_for('ec2_list'))
 
 @webapp.route('/ec2_examples/configscaling', methods=['POST'])
 def config_scaling():
     print("#configscaling")
     newautoScaling = request.form['autoScaling']
 
-    #TODO add method to change auto scaling
-    if newautoScaling == "On":
+    #TODO add method to change auto scaling - Change DB
+    if newautoScaling == "ON":
+        scaleStatus = "ON"
         print("auto scaling on")
-    if newautoScaling =="Off" :
+    if newautoScaling =="OFF" :
+        scaleStatus = "OFF"
         print("auto scaling off")
 
-    return render_template("ec2_examples/list.html", title="Manager UI Dashboard",
-                           )
+    return redirect(url_for('ec2_list'))
+
