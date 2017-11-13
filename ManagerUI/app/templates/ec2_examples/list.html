@@ -13,6 +13,15 @@
 
     <br>
      <form role="form" class="form-inline" action="/ec2_examples/scaling/" method="post">
+     {% with messages = get_flashed_messages()%}
+       {% if messages %}
+         {% for message in messages %}
+           <div class="alert alert-warning">
+             <strong>Warning! </strong>{{ message}}
+           </div>
+         {% endfor %}
+       {% endif %}
+     {% endwith %}
       <table class="table table-hover" />
     <thead>
        <th>Parameter</th>

@@ -236,30 +236,84 @@ def delete_all_userdata():
 
 @webapp.route('/ec2_examples/scaling/', methods=['POST'])
 def scaling_modified():
-    print("#Scaling")
+    
+    # Get User Data
     newUpperBound = request.form['upperBound']
     newlowerBound = request.form['lowerBound']
     newScaleUp = request.form['scaleUp']
     newScaleDown = request.form['scaleDown']
 
-    # #check which values were changed
+    update_prefix = "UPDATE autoscale SET "
+    update_suffix = " WHERE id = 1"
+    update_entry  = []
+    
+    # Update Parameters Check
     if newUpperBound:
-        print(newUpperBound)
+        if not (newUpperBound.isdigit()):
+            flash ("Upper Bound %s is not a valid number. Entry was not updated." % (newUpperBound))
+        elif (int (newUpperBound) > 100 or int(newUpperBound) < 0):
+            flash ("Upper Bound %s must be between 0-100. Entry was not updated." % (newUpperBound))
+        else:
+            update_entry.append ("upper_bound = " + newUpperBound)
     if newlowerBound:
-        print(newlowerBound)
+        if not (newlowerBound.isdigit()):
+            flash ("Lower Bound %s is not a valid  number. Entry was not updated." % (newlowerBound))
+        elif (int (newlowerBound) > 100 or int(newlowerBound) < 0):
+            flash ("Lower Bound %s must be between 0-100. Entry was not updated." % (newlowerBound))
+        else: 
+            update_entry.append ("lower_bound = " + newlowerBound)
     if newScaleUp:
-        print(newScaleUp)
+        if not (newScaleUp.isdigit()):
+            flash ("Scale Up %s is not a valid number. Entry was not updated." % (newScaleUp))
+        elif (int(newScaleUp) <= 0):
+            flash ("Scale Up %s must be greater than 0. Entry was not updated." % (newScaleUp))
+        else: 
+            update_entry.append ("scale_up = " + newScaleUp)
     if newScaleDown:
-        print(newScaleDown)
-    if newScaleDown:
-        print(newScaleDown)
-    #TODO update config.py with values from request.form
+        if not (newScaleDown.isdigit()):
+            flash ("Scale Down %s is not a valid number. Entry was not updated." % (newScaleDown))
+        elif (int(newScaleDown) <= 0):
+            flash ("Scale Down %s must be greater than 0. Entry was not updated." % (newScaleDown))
+        else:
+            update_entry.append("scale_down = " + newScaleDown)
+
+    # Open DB Connection
+    cnx    = mysql.connector.connect(user=config.DB_USER, password=config.DB_PASS, host=config.DB_HOST, database=config.DB_NAME)
+    cursor = cnx.cursor()
+    
+    # Update Fields that were valid
+    for update_middle in update_entry:
+        update_command = update_prefix + update_middle + update_suffix
+        try:
+            cursor.execute(update_command)
+            cnx.commit()
+        except:
+            cnx.rollback()                                            	                                                                                                                            
+    # Query DB for Autoscale settings
+    cursor.execute("SELECT scale,upper_bound,lower_bound,scale_up,scale_down FROM autoscale WHERE id = 1")   
+    auto_scale_data = cursor.fetchall()
+                                                                                                                                 
+    if (len(auto_scale_data) == 0):
+        flash ("Database is missing autoscale data")
+                                                                                                                                 
+    for scale,upper_bound,lower_bound,scale_up,scale_down in auto_scale_data:
+        AUTO_scale       = scale
+        AUTO_upper_bound = upper_bound
+        AUTO_lower_bound = lower_bound
+        AUTO_scale_up    = scale_up
+        AUTO_scale_down  = scale_down
+                                                                                                                                 
+    # Close DB Connection
+    cursor.close()
+    cnx.close()
+
+
 
     return render_template("ec2_examples/list.html", title="Manager UI Dashboard",
-                           upperBound = config.AUTO_upper_bound,
-                           lowerBound = config.AUTO_lower_bound,
-                           scaleUp = config.AUTO_scale_up,
-                           scaleDown = config.AUTO_scale_down
+                           upperBound = AUTO_upper_bound,
+                           lowerBound = AUTO_lower_bound,
+                           scaleUp = AUTO_scale_up,
+                           scaleDown = AUTO_scale_down
                            )
     # get_instances_cpu_avg
 
