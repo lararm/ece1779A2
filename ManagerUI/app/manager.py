@@ -6,7 +6,6 @@ from operator import itemgetter
 from app import config
 from app import webapp
 from app import elb
-from app import autoscale
 import threading
 
 global CW_THRESHOLD
