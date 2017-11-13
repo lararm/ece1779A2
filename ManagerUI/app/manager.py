@@ -255,39 +255,24 @@ def scaling_modified():
         print(newScaleDown)
     #TODO update config.py with values from request.form
 
-    aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
-    # create connection to ec2
-    ec2 = aws_session.resource('ec2')
-
-    instances = ec2.instances.filter(
-        Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
-    instances = ec2.instances.all()
-    # Display S3 info
-    # Let's use Amazon S3
-    s3 = aws_session.resource('s3')
-
-    # Print out bucket names
-    buckets = s3.buckets.all()
-
-    for b in buckets:
-        name = b.name
-
-    buckets = s3.buckets.all()
-
-    # Test CloudWatch avgs
-    workers_list = []
-    for instance in instances:
-        # filter db and mananger
-        if (instance.id != config.DATABASE_ID and instance.id != config.MANAGER_ID):
-            if ((instance.tags[0]['Value'] == 'A2WorkerNode') and (instance.state['Name'] != 'terminated')):
-                workers_list.append(instance.id)
-
-    return render_template("ec2_examples/list.html", title="Manager UI Dashboard", instances=instances, buckets=buckets,
-                           manager=config.MANAGER_ID,
-                           database=config.DATABASE_ID,
+    return render_template("ec2_examples/list.html", title="Manager UI Dashboard",
                            upperBound = config.AUTO_upper_bound,
                            lowerBound = config.AUTO_lower_bound,
                            scaleUp = config.AUTO_scale_up,
                            scaleDown = config.AUTO_scale_down
                            )
     # get_instances_cpu_avg
+
+@webapp.route('/ec2_examples/configscaling', methods=['POST'])
+def config_scaling():
+    print("#configscaling")
+    newautoScaling = request.form['autoScaling']
+
+    #TODO add method to change auto scaling
+    if newautoScaling == "On":
+        print("auto scaling on")
+    if newautoScaling =="Off" :
+        print("auto scaling off")
+
+    return render_template("ec2_examples/list.html", title="Manager UI Dashboard",
+                           )

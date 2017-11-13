@@ -2,6 +2,7 @@ CREATE DATABASE IF NOT EXISTS A2;
 USE A2;
 drop table images;
 drop table users;
+drop table autoscale;
 CREATE TABLE users
 (
 	id INT NOT NULL AUTO_INCREMENT,
@@ -24,5 +25,18 @@ CREATE TABLE images
     ON DELETE CASCADE
     ON UPDATE CASCADE
 ) ENGINE = InnoDB;
+CREATE TABLE autoscale
+(
+    id INT NOT NULL AUTO_INCREMENT,
+    scale char(10) NOT NULL,
+    upper_bound INT NOT NULL,
+    lower_bound INT NOT NULL,
+    scale_up    INT NOT NULL,
+    scale_down  INT NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE = InnoDB;
+
+INSERT INTO autoscale (scale,upper_bound,lower_bound,scale_up,scale_down) VALUES ('OFF',75,25,2,2);
+SELECT * FROM autoscale
 SELECT * FROM users;
 SELECT * FROM images;
