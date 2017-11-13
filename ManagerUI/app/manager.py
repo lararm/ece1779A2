@@ -265,15 +265,15 @@ def scaling_modified():
     if newScaleUp:
         if not (newScaleUp.isdigit()):
             flash ("Scale Up %s is not a valid number. Entry was not updated." % (newScaleUp))
-        elif (int(newScaleUp) <= 0):
-            flash ("Scale Up %s must be greater than 0. Entry was not updated." % (newScaleUp))
+        elif (int(newScaleUp) < 1 or int(newScaleUp) > 10):
+            flash ("Scale Up %s must be between 1-10. Entry was not updated." % (newScaleUp))
         else: 
             update_entry.append ("scale_up = " + newScaleUp)
     if newScaleDown:
         if not (newScaleDown.isdigit()):
             flash ("Scale Down %s is not a valid number. Entry was not updated." % (newScaleDown))
-        elif (int(newScaleDown) <= 0):
-            flash ("Scale Down %s must be greater than 0. Entry was not updated." % (newScaleDown))
+        elif (int(newScaleDown) < 1 or int(newScaleDown) > 10):
+            flash ("Scale Down %s must be between 1-10. Entry was not updated." % (newScaleDown))
         else:
             update_entry.append("scale_down = " + newScaleDown)
 
