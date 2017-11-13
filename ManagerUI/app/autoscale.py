@@ -2,7 +2,7 @@ import boto3
 import json
 import threading
 import time
-from app import config
+import config
 import mysql.connector
 from datetime import datetime, timedelta
 
@@ -21,13 +21,13 @@ def get_instances_cpu_avg():
         return False
                                                                                                                                  
     for scale,upper_bound,lower_bound,scale_up,scale_down in auto_scale_data:
-        AUTO_SCALE_ON    = scale
+        AUTO_SCALE       = scale
         AUTO_UPPER_BOUND = upper_bound
         AUTO_LOWER_BOUND = lower_bound
         AUTO_SCALE_UP    = scale_up
         AUTO_SCALE_DOWN  = scale_down
  
-    print ("AUTO PARAMS: %s %s %s %s %s" % (AUTO_SCALE_ON,AUTO_UPPER_BOUND,AUTO_LOWER_BOUND,AUTO_SCALE_UP,AUTO_SCALE_DOWN))                                                                                                                                
+    print ("AUTO PARAMS: %s %s %s %s %s" % (AUTO_SCALE,AUTO_UPPER_BOUND,AUTO_LOWER_BOUND,AUTO_SCALE_UP,AUTO_SCALE_DOWN))                                                                                                                                
     # Close DB Connection
     cursor.close()
     cnx.close()
@@ -72,11 +72,6 @@ def get_instances_cpu_avg():
             avgs.append(average)
         n_instances = n_instances + 1
     
-    #print ("Instances")
-    #print (instances_ids)
-
-    #print ("Averages")
-    #print (avgs)
     sum_avg = 0
     for avg in avgs:
         sum_avg = sum_avg + avg
@@ -87,26 +82,25 @@ def get_instances_cpu_avg():
         instances_average = 0
     print("cpu utilization avg:%f" % (instances_average))
 
-    if (instances_average >= AUTO_UPPER_BOUND):
-        print ("CPU Average is greather than threshold.")
-        print ("Increasing nodes from %d to %f" %(n_instances,n_instances*AUTO_SCALE_UP))
-        for new_instance in range (n_instances,int(n_instances*AUTO_SCALE_UP)):
-            print ("Creating a new instance")
-            #increase_worker_nodes() #FIXME enable this when ready
-    elif (instances_average <= AUTO_LOWER_BOUND):
-        print ("CPU Average is lower than threshold.")
-        print ("Decreasing nodes from %d to %d" %(n_instances,max(int(n_instances/AUTO_SCALE_DOWN),1)))
-        decrease_worker_nodes(n_instances - max(int(n_instances/AUTO_SCALE_DOWN),1))
-    else:
-        print ("CPU Average is within operating window. Total Workers %d" %(n_instances))
+    if (AUTO_SCALE == 'ON'):
+        if (instances_average >= AUTO_UPPER_BOUND):
+            print ("CPU Average is greather than threshold.")
+            print ("Increasing nodes from %d to %f" %(n_instances,n_instances*AUTO_SCALE_UP))
+            increase_worker_nodes(int(n_instances*AUTO_SCALE_UP)-n_instances)
+        elif (instances_average <= AUTO_LOWER_BOUND):
+            print ("CPU Average is lower than threshold.")
+            print ("Decreasing nodes from %d to %d" %(n_instances,max(int(n_instances/AUTO_SCALE_DOWN),1)))
+            decrease_worker_nodes(n_instances - max(int(n_instances/AUTO_SCALE_DOWN),1))
+        else:
+            print ("CPU Average is within operating window. Total Workers %d" %(n_instances))
 
-def increase_worker_nodes():
+def increase_worker_nodes(add_instances):
     aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
     ec2 = aws_session.resource('ec2')
 
     new_instances = ec2.create_instances(ImageId=config.EC2_ami_id,
-                                         MinCount=config.EC2_num_instances,
-                                         MaxCount=config.EC2_num_instances,
+                                         MinCount=add_instances,
+                                         MaxCount=add_instances,
                                          UserData=config.EC2_user_data,
                                          InstanceType=config.EC2_instance_type,
                                          KeyName=config.EC2_key_name,
@@ -117,11 +111,16 @@ def increase_worker_nodes():
                                              {'Key': config.EC2_tagkey, 'Value': config.EC2_tagvalue}, ]}, ])
 
     for instance in new_instances:
-        elb.elb_add_instance(instance.id)  # Add New Instance to ELB
+        elb_add_instance(instance.id)  # Add New Instance to ELB
 
     return 'OK'
 
 def decrease_worker_nodes(delete_instances):
+
+    if (delete_instances == 0):
+        print ("Cant delete anymore")
+        return
+
     print ("Going to delete %d" % (delete_instances))
 
     # Create EC2 Resource
@@ -165,27 +164,25 @@ def decrease_worker_nodes(delete_instances):
             avgs.append(average)
         n_instances = n_instances + 1
 
-    print ("Instances")
+    print ("Instances:")
     print (instances_ids)
-    print ("Averages")
+    print ("Averages:")
     print (avgs)
 
-    # sort avgs
+    # Sort Instances by CPU Averages in Non-Increasing order
     X = instances_ids
     Y = avgs
 
     Z = [x for _, x in sorted(zip(Y, X))]
+    print("Sorted:")
     print(Z)
 
-    #get n min instances:
-    for i in range (0,delete_instances-1):
-        print("delete:")
-        print(Z[i])
-
-
-
-
-
+    # Delete Necessary Instances by Non-Increasing CPU Average orrder
+    for i in range (0,delete_instances):
+        del_instances = ec2.instances.filter(InstanceIds=[Z[i]])
+        for instance in del_instances:
+            elb_remove_instance(instance.id) # Remove Instance from ELB
+            instance.terminate()             # Terminate Instance
 
 def elb_add_instance(instanceId):
 
