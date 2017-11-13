@@ -2,7 +2,7 @@ import boto3
 import json
 import threading
 import time
-import config
+from app import config
 import mysql.connector
 from datetime import datetime, timedelta
 
@@ -121,8 +121,71 @@ def increase_worker_nodes():
 
     return 'OK'
 
-def decrease_worker_nodes(delete_instances): 
+def decrease_worker_nodes(delete_instances):
     print ("Going to delete %d" % (delete_instances))
+
+    # Create EC2 Resource
+    ec2 = boto3.resource('ec2', aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
+
+    # Get All EC2 Instances
+    instances = ec2.instances.all()
+
+    # Test CloudWatch avgs
+    instances_ids = []
+    for instance in instances:
+        if ((instance.tags[0]['Value'] == 'A2WorkerNode') and (
+            (instance.state['Name'] != 'terminated') and (instance.state['Name'] != 'shutting-down'))):
+            instances_ids.append(instance.id)
+
+    avgs = []
+    n_instances = 0
+
+    # Get minute avg CPU utilization for every worker instance
+    for id in instances_ids:
+        instance = ec2.Instance(id)
+        client = boto3.client('cloudwatch', aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
+        metric_name = 'CPUUtilization'
+        namespace = 'AWS/EC2'
+        statistic = 'Average'  # could be Sum,Maximum,Minimum,SampleCount,Average
+
+        cpu = client.get_metric_statistics(
+            Period=2 * 60,
+            StartTime=datetime.utcnow() - timedelta(seconds=2 * 60),
+            EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
+            MetricName=metric_name,
+            Namespace=namespace,  # Unit='Percent',
+            Statistics=[statistic],
+            Dimensions=[{'Name': 'InstanceId', 'Value': id}]
+        )
+
+        datapoints = cpu['Datapoints']
+        if datapoints:
+            data = datapoints[0]
+            average = data["Average"]
+            avgs.append(average)
+        n_instances = n_instances + 1
+
+    print ("Instances")
+    print (instances_ids)
+    print ("Averages")
+    print (avgs)
+
+    # sort avgs
+    X = instances_ids
+    Y = avgs
+
+    Z = [x for _, x in sorted(zip(Y, X))]
+    print(Z)
+
+    #get n min instances:
+    for i in range (0,delete_instances-1):
+        print("delete:")
+        print(Z[i])
+
+
+
+
+
 
 def elb_add_instance(instanceId):
 

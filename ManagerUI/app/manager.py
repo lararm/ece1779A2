@@ -6,6 +6,7 @@ from operator import itemgetter
 from app import config
 from app import webapp
 from app import elb
+from app import autoscale
 import threading
 
 global CW_THRESHOLD
@@ -62,6 +63,7 @@ def ec2_list():
     # Close DB Connection
     cursor.close()
     cnx.close()
+
     return render_template("ec2_examples/list.html", title="Manager UI Dashboard", instances=instances, buckets=buckets,
                            manager=config.MANAGER_ID,
                            database=config.DATABASE_ID,
