@@ -5,45 +5,69 @@
     <br>
     <h2>Auto Scaling Policy </h2>
     <br>
-   <a href="#" class="btn btn-primary active" role="button" aria-pressed="true">On</a>
+    <a href="#" class="btn btn-primary active" role="button" aria-pressed="true">On</a>
     <a href="#" class="btn btn-secondary active" role="button" aria-pressed="true"> Off</a>
     <br>
     <br>
+     <form role="form" class="form-inline" action="/ec2_examples/scaling/" method="post">
+      <table class="table table-hover" />
+    <thead>
+       <th>Parameter</th>
+       <th>Value</th>
+       <th><span style="padding-left:20px;">New Value</span></th>
+       <th>Submit</th>
+    </thead>
+    <tr>
+        <td>Upper Bound</td>
+        <td>{{ upperBound}}</td>
+        <td>
+            <div class="form-group col-md-4">
+                <input type="text" name="upperBound" class="form-control input-normal" />
+            </div>
+        </td>
+        <td> <input type="submit" value="Submit" class="btn btn-danger"></td>
+    </tr>
+        <tr>
+        <td>Lower Bound</td>
+        <td>{{ lowerBound }}</td>
+          <td>
+            <div class="form-group col-md-4">
+                <input type="text" name="lowerBound" class="form-control input-normal" />
+            </div>
+        </td>
+        <td> <input type="submit" value="Submit" class="btn btn-danger"></td>
+    </tr>
+        <tr>
+        <td>Scale Up</td>
+        <td>{{ scaleUp }}</td>
+         <td>
+            <div class="form-group col-md-4">
+                <input type="text" name= "scaleUp" class="form-control input-normal" />
+            </div>
+        </td>
+        <td> <input type="submit" value="Submit" class="btn btn-danger"></td>
 
-    <form role="form" class="form-inline">
-        <div class="row">
+    </tr>
+        <tr>
+        <td>Scale Down</td>
+        <td>{{ scaleDown }}</td>
+         <td>
             <div class="form-group col-md-4">
-                <label for="code">Upper Bound</label>
-                <input type="text" class="form-control input-normal" />
+                <input type="text"name= "scaleDown" class="form-control input-normal" />
             </div>
-        </div>
+        </td>
+        <td> <input type="submit"  value="Submit" class="btn btn-danger"></td>
+    </tr>
 
-        <div class="row">
-            <div class="form-group col-md-4">
-                <label for="code" >Lower Bound</label>
-                <input type="text" class="form-control input-normal" />
-            </div>
-        </div>
-      <div class="row">
-            <div class="form-group col-md-4">
-                <label for="code">Scale Up</label>
-                <input type="text" class="form-control input-normal" />
-            </div>
-        </div>
-      <div class="row">
-            <div class="form-group col-md-4">
-                <label for="code">Scale Down</label>
-                <input type="text" class="form-control input-normal" />
-            </div>
-        </div>
 
-    </form>
+    </table>
+     </form>
     <br>
     <br>
 
     <hr/>
     <h2>User Data</h2>
-    <form action="{{url_for('ec2_delete_all')}}" method="post" onsubmit='return confirm("Are you sure?")'>
+    <form action="{{url_for('delete_all_userdata')}}" method="post" onsubmit='return confirm("Are you sure?")'>
         <input type="submit" value="Delete All User Data" class="btn btn-danger">
     </form>
     <br>

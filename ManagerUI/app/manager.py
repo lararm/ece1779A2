@@ -3,10 +3,9 @@ import mysql.connector
 from flask import render_template, redirect, url_for, request
 from datetime import datetime, timedelta
 from operator import itemgetter
-from app import webapp
 from app import config
+from app import webapp
 from app import elb
-from app import cloudWatch
 import threading
 
 global CW_THRESHOLD
@@ -44,7 +43,13 @@ def ec2_list():
 
     return render_template("ec2_examples/list.html", title="Manager UI Dashboard", instances=instances, buckets=buckets,
                            manager=config.MANAGER_ID,
-                           database=config.DATABASE_ID)
+                           database=config.DATABASE_ID,
+                           upperBound = config.AUTO_upper_bound,
+                           lowerBound = config.AUTO_lower_bound,
+                           scaleUp = config.AUTO_scale_up,
+                           scaleDown = config.AUTO_scale_down
+                           )
+
 
 
 @webapp.route('/ec2_examples/<id>', methods=['GET'])
@@ -177,7 +182,7 @@ def ec2_destroy(id):
 
 @webapp.route('/ec2_examples/deleteAll/', methods=['POST'])
 # Terminate all instances and clear S3 data
-def ec2_delete_all():
+def delete_all_userdata():
     
     print("Deleting All User Data")
     # Open DB Connection
@@ -206,3 +211,61 @@ def ec2_delete_all():
     bucket.objects.all().delete()
 
     return redirect(url_for('ec2_list'))
+
+@webapp.route('/ec2_examples/scaling/', methods=['POST'])
+def scaling_modified():
+    print("#Scaling")
+    newUpperBound = request.form['upperBound']
+    newlowerBound = request.form['lowerBound']
+    newScaleUp = request.form['scaleUp']
+    newScaleDown = request.form['scaleDown']
+
+    # #check which values were changed
+    if newUpperBound:
+        print(newUpperBound)
+    if newlowerBound:
+        print(newlowerBound)
+    if newScaleUp:
+        print(newScaleUp)
+    if newScaleDown:
+        print(newScaleDown)
+    if newScaleDown:
+        print(newScaleDown)
+    #TODO update config.py with values from request.form
+
+    aws_session = boto3.Session(aws_access_key_id=config.AWS_KEY, aws_secret_access_key=config.AWS_SECRET)
+    # create connection to ec2
+    ec2 = aws_session.resource('ec2')
+
+    instances = ec2.instances.filter(
+        Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+    instances = ec2.instances.all()
+    # Display S3 info
+    # Let's use Amazon S3
+    s3 = aws_session.resource('s3')
+
+    # Print out bucket names
+    buckets = s3.buckets.all()
+
+    for b in buckets:
+        name = b.name
+
+    buckets = s3.buckets.all()
+
+    # Test CloudWatch avgs
+    workers_list = []
+    for instance in instances:
+        # filter db and mananger
+        if (instance.id != config.DATABASE_ID and instance.id != config.MANAGER_ID):
+            if ((instance.tags[0]['Value'] == 'A2WorkerNode') and (instance.state['Name'] != 'terminated')):
+                workers_list.append(instance.id)
+
+    return render_template("ec2_examples/list.html", title="Manager UI Dashboard", instances=instances, buckets=buckets,
+                           manager=config.MANAGER_ID,
+                           database=config.DATABASE_ID,
+                           upperBound = config.AUTO_upper_bound,
+                           lowerBound = config.AUTO_lower_bound,
+                           scaleUp = config.AUTO_scale_up,
+                           scaleDown = config.AUTO_scale_down
+                           )
+    # get_instances_cpu_avg
