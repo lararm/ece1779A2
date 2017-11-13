@@ -1,6 +1,6 @@
 import boto3
 import mysql.connector
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for, request,flash
 from datetime import datetime, timedelta
 from operator import itemgetter
 from app import config
@@ -40,14 +40,36 @@ def ec2_list():
         if (instance.id != config.DATABASE_ID and instance.id != config.MANAGER_ID):
              if(( instance.tags[0]['Value'] == 'A2WorkerNode' ) and (instance.state['Name'] != 'terminated')):
                 workers_list.append(instance.id)
+	
+    # Open DB Connection
+    cnx    = mysql.connector.connect(user=config.DB_USER, password=config.DB_PASS, host=config.DB_HOST, database=config.DB_NAME)
+    cursor = cnx.cursor()
 
+    # Query DB for Autoscale settings
+    cursor.execute("SELECT scale,upper_bound,lower_bound,scale_up,scale_down FROM autoscale WHERE id = 1")   
+    auto_scale_data = cursor.fetchall()
+
+    if (len(auto_scale_data) == 0):
+        flash ("Database is missing autoscale data")
+
+    for scale,upper_bound,lower_bound,scale_up,scale_down in auto_scale_data:
+        AUTO_scale       = scale
+        AUTO_upper_bound = upper_bound
+        AUTO_lower_bound = lower_bound
+        AUTO_scale_up    = scale_up
+        AUTO_scale_down  = scale_down
+
+    # Close DB Connection
+    cursor.close()
+    cnx.close()
+	
     return render_template("ec2_examples/list.html", title="Manager UI Dashboard", instances=instances, buckets=buckets,
                            manager=config.MANAGER_ID,
                            database=config.DATABASE_ID,
-                           upperBound = config.AUTO_upper_bound,
-                           lowerBound = config.AUTO_lower_bound,
-                           scaleUp = config.AUTO_scale_up,
-                           scaleDown = config.AUTO_scale_down
+                           upperBound = AUTO_upper_bound,
+                           lowerBound = AUTO_lower_bound,
+                           scaleUp = AUTO_scale_up,
+                           scaleDown = AUTO_scale_down
                            )
 
 
