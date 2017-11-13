@@ -289,19 +289,6 @@ def scaling_modified():
             cnx.commit()
         except:
             cnx.rollback()                                            	                                                                                                                            
-    # Query DB for Autoscale settings
-    cursor.execute("SELECT scale,upper_bound,lower_bound,scale_up,scale_down FROM autoscale WHERE id = 1")   
-    auto_scale_data = cursor.fetchall()
-                                                                                                                                 
-    if (len(auto_scale_data) == 0):
-        flash ("Database is missing autoscale data")
-                                                                                                                                 
-    for scale,upper_bound,lower_bound,scale_up,scale_down in auto_scale_data:
-        AUTO_scale       = scale
-        AUTO_upper_bound = upper_bound
-        AUTO_lower_bound = lower_bound
-        AUTO_scale_up    = scale_up
-        AUTO_scale_down  = scale_down
                                                                                                                                  
     # Close DB Connection
     cursor.close()
@@ -311,16 +298,36 @@ def scaling_modified():
 
 @webapp.route('/ec2_examples/configscaling', methods=['POST'])
 def config_scaling():
-    print("#configscaling")
+ 
+    # Get User DATA   
     newautoScaling = request.form['autoScaling']
 
-    #TODO add method to change auto scaling - Change DB
+    update_prefix = "UPDATE autoscale SET "
+    update_suffix = " WHERE id = 1"
+    update_entry  = []
+
+    # Check Value
     if newautoScaling == "ON":
-        scaleStatus = "ON"
-        print("auto scaling on")
+        update_entry.append("scale = 'ON'")
     if newautoScaling =="OFF" :
-        scaleStatus = "OFF"
-        print("auto scaling off")
+        update_entry.append("scale = 'OFF'")
+
+    # Open DB Connection
+    cnx    = mysql.connector.connect(user=config.DB_USER, password=config.DB_PASS, host=config.DB_HOST, database=config.DB_NAME)
+    cursor = cnx.cursor()
+    
+    # Update Fields that were valid
+    for update_middle in update_entry:
+        update_command = update_prefix + update_middle + update_suffix
+        try:
+            cursor.execute(update_command)
+            cnx.commit()
+        except:
+            cnx.rollback()                                            	                                                                                                                            
+                                                                                                                                 
+    # Close DB Connection
+    cursor.close()
+    cnx.close()
 
     return redirect(url_for('ec2_list'))
 
