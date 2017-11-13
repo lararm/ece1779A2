@@ -57,7 +57,7 @@ def get_instances_cpu_avg():
                 avgs.append(average)
             n_instances = n_instances + 1
         
-        print ("Averages")
+        print ("Instances")
         print (instances_ids)
 
         print ("Averages")
@@ -73,16 +73,17 @@ def get_instances_cpu_avg():
         print("cpu utilization avg:%f" % (instances_average))
 
         if (instances_average >= AUTO_UPPER_BOUND):
-            print ("Over uppower limit, should increase nodes")
-            print ("Nodes could go from %d to %f" %(n_instances,n_instances*AUTO_SCALE_UP))
+            print ("CPU Average is greather than threshold.")
+            print ("Increasing nodes from %d to %f" %(n_instances,n_instances*AUTO_SCALE_UP))
             for new_instance in range (n_instances,int(n_instances*AUTO_SCALE_UP)):
                 print ("Creating a new instance")
                 increase_worker_nodes()
         elif (instances_average <= AUTO_LOWER_BOUND):
-            print ("Below lower limit, should decrease nodes")
-            print ("Nodes could go from %d to %f" %(n_instances,n_instances/AUTO_SCALE_DOWN))
+            print ("CPU Average is lower than threshold.")
+            print ("Decreasing nodes from %d to %d" %(n_instances,max(int(n_instances/AUTO_SCALE_DOWN),1)))
+            #FIXME put call to decrease_worker_nodes here
         else:
-        	print ("In the sweet spot. %d nodes active" %(n_instances))
+            print ("CPU Average is within operating window. Total Workers %d" %(n_instances))
 
         time.sleep(60) 
 
@@ -106,3 +107,6 @@ def increase_worker_nodes():
         elb.elb_add_instance(instance.id)  # Add New Instance to ELB
 
     return 'OK'
+
+#def decrease_worker_nodes(int num_instances): FIXME implement this
+
