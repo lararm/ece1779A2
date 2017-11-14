@@ -7,4 +7,4 @@ from app import webapp
 @webapp.route('/main',methods=['GET'])
 # Display an HTML page with links
 def main():
-    return render_template("main.html",title="Landing Page")
+    return render_template("ec2_examples/list.html", title="Manager UI Dashboard")
